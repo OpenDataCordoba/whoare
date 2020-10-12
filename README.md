@@ -17,7 +17,7 @@ str(wa.domain)
 'Domain argentina at ar. Registered at 2016-11-08 09:26:59.345164'
 
 str(wa.registrant)
-'Registrant nic.ar UIF 99999999994'
+'Registrant nic.ar UID 99999999994'
 
 str(wa.dnss[0])
 'DNS ns1.afip.gob.ar'

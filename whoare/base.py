@@ -37,7 +37,7 @@ class Registrant:
         self.changed = None
 
     def __str__(self):
-        return f'Registrant {self.name} UIF {self.legal_uid}'
+        return f'Registrant {self.name} UID {self.legal_uid}'
     
 
 class DNS:
