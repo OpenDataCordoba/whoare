@@ -11,17 +11,25 @@
 ```python
 from whoare.whoare import WhoAre
 wa = WhoAre()
-wa.load('argentina.ar')
+wa.load('fernet.com.ar')
 
-str(wa.domain)
-'Domain argentina at ar. Registered at 2016-11-08 09:26:59.345164'
+wa.domain.base_name
+'fernet'
+wa.domain.zone
+'com.ar'
+wa.domain.full_name()
+'fernet.com.ar'
+wa.domain.registered
+datetime.datetime(2020, 5, 7, 10, 44, 4, 210977)
+wa.domain.expire
+datetime.datetime(2021, 5, 7, 0, 0)
 
-str(wa.registrant)
-'Registrant nic.ar UID 99999999994'
-
-str(wa.dnss[0])
-'DNS ns1.afip.gob.ar'
-str(wa.dnss[1])
-'DNS ns2.afip.gob.ar'
-
+wa.registrant.name
+'XXXX jose XXXXX'
+wa.registrant.legal_uid
+'20XXXXXXXX9'
+wa.dnss[0].name
+'ns2.sedoparking.com'
+wa.dnss[1].name
+'ns1.sedoparking.com'
 ```

@@ -18,7 +18,7 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.1.15',  # Required
+    version='0.1.17',  # Required
     description='A whois scraper',
     long_description=long_description,  # Optional
     long_description_content_type='text/markdown',  # Optional (see note above)
@@ -57,7 +57,7 @@ setup(
 
     keywords='whois, domain, nic.ar',
     
-    packages=find_packages(where='whoare'),  # Required
+    packages=find_packages(exclude='tests'),  # Required
     python_requires='>=3.6, <4',
 
     install_requires=[
