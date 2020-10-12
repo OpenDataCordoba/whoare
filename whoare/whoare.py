@@ -38,8 +38,8 @@ class WhoAre:
             command = ['whois', domain]
 
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        raw = p.communicate()[0]
-        # raw = r.decode()
+        r = p.communicate()[0]
+        raw = r.decode()
         
         if p.returncode != 0:
             error = f'WhoIs error {p.returncode} {raw}'

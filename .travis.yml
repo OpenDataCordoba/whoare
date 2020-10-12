@@ -1,0 +1,22 @@
+language: python
+python:
+  - 3.6
+  - 3.7
+  - 3.8
+before_install:
+  - sudo apt-get update
+install:
+  - pip install -r dev-requirements.txt
+before_script:
+  - flake8 whoare --count --select=E9,F63,F7,F82 --show-source --statistics
+  - flake8 whoare --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+script:
+  - python -m pytest -s
+deploy:
+    provider: pypi
+    username: "$PYPI_USER"
+    password: "$PYPI_PASSWORD"
+    distributions: "sdist bdist_wheel"
+    on:
+        tags: true
+        python: 3.8

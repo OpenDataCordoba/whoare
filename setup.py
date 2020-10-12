@@ -18,7 +18,7 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.1.12',  # Required
+    version='0.1.13',  # Required
     description='A whois scraper',
     long_description=long_description,  # Optional
     long_description_content_type='text/markdown',  # Optional (see note above)
@@ -73,7 +73,7 @@ setup(
     # Similar to `install_requires` above, these must be valid existing
     # projects.
     extras_require={  # Optional
-        'dev': ['flake8']
+        # 'dev': ['flake8']
     },
 
     # If there are data files included in your packages that need to be

@@ -10,7 +10,7 @@ def whois_from_txt(path):
     
     process_mock = mock.Mock()
     attrs = {
-        'communicate.return_value': [content],
+        'communicate.return_value': [content.encode()],
         'returncode': 0
         }
     process_mock.configure_mock(**attrs)

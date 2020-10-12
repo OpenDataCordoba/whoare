@@ -19,6 +19,10 @@ class Domain:
         self.expire = None
         self.is_free = True  # change is registered
 
+    def __str__(self):
+        if self.is_free:
+            return f'Domain {self.full_name()} FREE'
+        return f'Domain {self.base_name} at {self.zone}. Registered at {self.registered}'
     
     def full_name(self):
         return f'{self.base_name}.{self.zone}'
@@ -32,10 +36,16 @@ class Registrant:
         self.created = None
         self.changed = None
 
+    def __str__(self):
+        return f'Registrant {self.name} UIF {self.legal_uid}'
+    
 
 class DNS:
     
     def __init__(self, name):
         logger.info(f'DNS object created {name}')
         self.name = name.lower().strip()
+    
+    def __str__(self):
+        return f'DNS {self.name}'
     
