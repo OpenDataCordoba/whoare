@@ -1,7 +1,7 @@
 import logging
 import subprocess
 
-from whoare.base import Domain
+from whoare.base import Domain, subclasses
 from whoare.exceptions import ZoneNotFoundError, WhoIsCommandError
 
 logger = logging.getLogger(__name__)
@@ -9,23 +9,11 @@ logger = logging.getLogger(__name__)
 
 class WhoAre:
 
-    child = None  # the real child object
-    domain = None  # Domain Object
-    registrant = None  # Registrant Objects
-    dnss = []  # all DNSs objects
-
-    def detect_subclass(self, zone):
-        subcalsses = WhoAre.__subclasses__()
-        logger.info(f'Detecting subclass for {zone} at {subcalsses}')
-        
-        for cls in WhoAre.__subclasses__():
-            logger.info(f'Searching zones for {cls} {cls.zones()}')
-            if zone in cls.zones():
-                return cls
-
-        error = f'Zone not covered "{zone}"'
-        logger.error(error)
-        raise ZoneNotFoundError(error)
+    def __init__(self):
+        self.child = None  # the object for the zone
+        self.domain = None  # Domain Object
+        self.registrant = None  # Registrant Objects
+        self.dnss = []  # all DNSs objects
 
     def load(self, domain, host=None):
         """ load domain data. 
@@ -50,15 +38,23 @@ class WhoAre:
             command = ['whois', domain]
 
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        r = p.communicate()[0]
-        raw = r.decode()
+        raw = p.communicate()[0]
+        # raw = r.decode()
         
         if p.returncode != 0:
             error = f'WhoIs error {p.returncode} {raw}'
             logger.error(error)
             raise WhoIsCommandError(error)
             
-        self.child.parse(raw)       
+        if self.child.is_free(raw):
+            return None
+
+        # raise any errors
+        self.child.check_errors(raw)
+
+        self.domain.is_free = False
+        # parse raw data
+        self.child.parse(raw, self)       
 
     def detect_zone(self, domain):
         logger.info(f'Detect zone {domain}')
@@ -75,3 +71,17 @@ class WhoAre:
         zone = '.'.join(parts[1:])
 
         return domain, zone
+    
+    def detect_subclass(self, zone):
+        
+        logger.info(f'Detecting subclass for {zone} at {subclasses}')
+        
+        for cls in subclasses:
+            logger.info(f'Searching zones for {cls} {cls.zones()}')
+            if zone in cls.zones():
+                return cls
+
+        error = f'Zone not covered "{zone}"'
+        logger.error(error)
+        raise ZoneNotFoundError(error)
+
