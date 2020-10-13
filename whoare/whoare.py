@@ -15,6 +15,30 @@ class WhoAre:
         self.registrant = None  # Registrant Objects
         self.dnss = []  # all DNSs objects
 
+    def as_dict(self):
+        """ build a nice dict """
+        res = {
+                "domain": {
+                    "base_name": self.domain.base_name,
+                    "zone": self.domain.zone,
+                    "is_free": self.domain.is_free
+                    }
+                }
+        if not self.domain.is_free:
+            res["domain"]["registered"] = self.domain.registered
+            res["domain"]["changed"] = self.domain.changed
+            res["domain"]["expire"] = self.domain.expire
+            res["registrant"] = {
+                "name": self.registrant.name,
+                "legal_uid": self.registrant.legal_uid,
+                "created": self.registrant.created,
+                "changed": self.registrant.changed
+                }
+
+            res["dnss"] = [dns.name for dns in self.dnss]
+            
+        return res
+
     def load(self, domain, host=None):
         """ load domain data. 
                 domain is DOMAIN.ZONE (never use subdomain like www or others)

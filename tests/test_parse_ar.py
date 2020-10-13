@@ -99,3 +99,32 @@ def test_nic(mock_subproc_popen):
     assert wa.dnss[2].name == 'ns1.rdns.ar'
     assert wa.dnss[3].name == 'ns2.rdns.ar'
     assert wa.dnss[4].name == 'ns3.rdns.ar'
+
+
+@mock.patch('subprocess.Popen')
+def test_fernet(mock_subproc_popen):
+
+    wa = WhoAre()    
+    mock_subproc_popen.return_value = whois_from_txt('whoare/zone_parsers/ar/sample_fernet.txt')
+    wa.load('fernet.com.ar')
+    assert mock_subproc_popen.called
+
+    expected_dict = {
+        "domain": {
+            "base_name": 'fernet',
+            "zone": 'com.ar',
+            "is_free": False,
+            "registered": wa.domain.registered,
+            "changed": wa.domain.changed,
+            "expire": wa.domain.expire
+            },
+        "registrant": {
+            "name": wa.registrant.name,
+            "legal_uid": wa.registrant.legal_uid,
+            "created": wa.registrant.created,
+            "changed": wa.registrant.changed
+        },
+        "dnss": ['ns2.sedoparking.com', 'ns1.sedoparking.com']
+    }
+    
+    assert wa.as_dict() == expected_dict
