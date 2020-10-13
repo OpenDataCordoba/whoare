@@ -3,10 +3,17 @@
 [![GitHub Issues](https://img.shields.io/github/issues/avdata99/whoare?style=for-the-badge)](https://github.com/avdata99/whoare/issues)
 [![GitHub PR](https://img.shields.io/github/issues-pr/avdata99/whoare?style=for-the-badge)](https://github.com/avdata99/whoare/pulls)
 [![Licence](https://img.shields.io/github/license/avdata99/whoare?style=for-the-badge)](https://github.com/avdata99/whoare/blob/main/LICENSE)
-[![Pypi py version](https://img.shields.io/pypi/pyversions/sss-beneficiarios-hospitales?style=for-the-badge)](https://pypi.org/project/sss-beneficiarios-hospitales/)
+[![Pypi py version](https://img.shields.io/pypi/pyversions/whoare?style=for-the-badge)](https://pypi.org/project/whoare/)
 [![Last Commit](https://img.shields.io/github/last-commit/avdata99/whoare?style=for-the-badge)](https://github.com/avdata99/whoare/commits/main)
 
 # A WhoIs parser
+
+Just a `whois` parser
+
+Available countries:
+ - `.ar`: Argentina
+
+## Sample
 
 ```python
 from whoare.whoare import WhoAre
