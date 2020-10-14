@@ -39,11 +39,12 @@ class WhoAre:
             
         return res
 
-    def load(self, domain, host=None):
+    def load(self, domain, host=None, mock_from_txt_file=None):
         """ load domain data. 
                 domain is DOMAIN.ZONE (never use subdomain like www or others)
                 host could be "whois.nic.ar" of rargentina (optional) 
-            Return a dict with parsed data and fill class properties """
+            Return a dict with parsed data and fill class properties 
+                mock_from_txt_file could be used to a path with exact whois results """
         
         logger.info(f'Load {domain} {host}')
         
@@ -56,19 +57,24 @@ class WhoAre:
         
         domain = f'{domain_name}.{zone}'
 
-        if host:
-            command = ['whois', f'-h {host}', domain]
+        if mock_from_txt_file is not None:
+            f = open(mock_from_txt_file)
+            raw = f.read()
+            f.close()
         else:
-            command = ['whois', domain]
+            if host:
+                command = ['whois', f'-h {host}', domain]
+            else:
+                command = ['whois', domain]
 
-        p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        r = p.communicate()[0]
-        raw = r.decode()
-        
-        if p.returncode != 0:
-            error = f'WhoIs error {p.returncode} {raw}'
-            logger.error(error)
-            raise WhoIsCommandError(error)
+            p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            r = p.communicate()[0]
+            raw = r.decode()
+            
+            if p.returncode != 0:
+                error = f'WhoIs error {p.returncode} {raw}'
+                logger.error(error)
+                raise WhoIsCommandError(error)
             
         if self.child.is_free(raw):
             return None
@@ -108,4 +114,3 @@ class WhoAre:
         error = f'Zone not covered "{zone}"'
         logger.error(error)
         raise ZoneNotFoundError(error)
-
