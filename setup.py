@@ -18,7 +18,7 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.1.19',  # Required
+    version='0.1.23',  # Required
     description='A whois scraper',
     long_description=long_description,  # Optional
     long_description_content_type='text/markdown',  # Optional (see note above)
@@ -61,7 +61,7 @@ setup(
     python_requires='>=3.6, <4',
 
     install_requires=[
-        
+        'pytz',  # for localize dates
     ], 
     
     # List additional groups of dependencies here (e.g. development

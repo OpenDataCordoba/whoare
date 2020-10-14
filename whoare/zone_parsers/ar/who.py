@@ -1,9 +1,13 @@
+import pytz
 from datetime import datetime
 import logging
-from whoare.exceptions import TooManyQueriesError, ServiceUnavailableError, UnknownError, UnexpectedParseError
+from whoare.exceptions import (TooManyQueriesError, ServiceUnavailableError, 
+                               UnknownError, UnexpectedParseError,
+                               UnexpectedDomainError)
 
 
 logger = logging.getLogger(__name__)
+tz = pytz.timezone('America/Argentina/Cordoba')
 
 
 class WhoAr:
@@ -47,7 +51,7 @@ class WhoAr:
             raise UnexpectedParseError(f'Field {field} is not "domain"')
         
         if value != parent.domain.full_name():
-            raise UnexpectedParseError(f'Unexpected domain {value} != {parent.domain.full_name()}')
+            raise UnexpectedDomainError(f'Unexpected domain {value} != {parent.domain.full_name()}')
         
         # ==========================================
         field, value = self._parse_line(real_lines[1])
@@ -135,6 +139,7 @@ class WhoAr:
             res = datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S.%f')
         except ValueError:
             res = datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S')
-        
+
+        res = tz.localize(res, is_dst=True)        
         logger.debug(f'_get_nic_date {date_str} {res}')
         return res

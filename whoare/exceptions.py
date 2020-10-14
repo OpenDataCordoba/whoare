@@ -22,3 +22,7 @@ class UnknownError(Exception):
 class UnexpectedParseError(Exception):
     """ Registrar asks to stop querying """
     pass
+
+class UnexpectedDomainError(Exception):
+    """ Registrar asks to stop querying """
+    pass
