@@ -1,0 +1,26 @@
+% La información a la que estás accediendo se provee exclusivamente para
+% fines relacionados con operaciones sobre nombres de dominios y DNS,
+% quedando absolutamente prohibido su uso para otros fines.
+%
+% La DIRECCIÓN NACIONAL DEL REGISTRO DE DOMINIOS DE INTERNET es depositaria
+% de la información que los usuarios declaran con la sola finalidad de
+% registrar nombres de dominio en ‘.ar’, para ser publicada en el sitio web
+% de NIC Argentina.
+%
+% La información personal que consta en la base de datos generada a partir
+% del sistema de registro de nombres de dominios se encuentra amparada por
+% la Ley N° 25326 “Protección de Datos Personales” y el Decreto
+% Reglamentario 1558/01.
+
+domain:		sindns.com.ar
+registrant:	20XXXXXX81
+registrar:	nicar
+registered:	1999-10-06 00:00:00
+changed:	2020-02-27 15:00:09.997432
+expire:		2013-10-06 00:00:00
+
+contact:	20xxxxxx81
+name:		juan perez
+registrar:	nicar
+created:	2014-08-27 00:00:00
+changed:	2016-09-22 16:17:21.090614

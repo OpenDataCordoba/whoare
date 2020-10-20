@@ -114,16 +114,20 @@ class WhoAr:
         
         parent.registrant.changed = self._get_nic_date(value)
 
-        # ==========================================
-        field, value = self._parse_line(real_lines[11])
-        n = 11
-        while field == "nserver":
-            parts = value.split()
-            ns = parts[0]
-            logger.info(f'DNS found {ns}')
-            parent.dnss.append(DNS(name=ns))
-            n += 1
-            field, value = self._parse_line(real_lines[n])
+        if len(real_lines) > 11:
+            # ==========================================
+            field, value = self._parse_line(real_lines[11])
+            n = 11
+            while field == "nserver":
+                parts = value.split()
+                ns = parts[0]
+                logger.info(f'DNS found {ns}')
+                parent.dnss.append(DNS(name=ns))
+                n += 1
+                if len(real_lines) > n:
+                    field, value = self._parse_line(real_lines[n])
+                else:
+                    field = None
         
     def _parse_line(self, line):
         parts = line.split(':')

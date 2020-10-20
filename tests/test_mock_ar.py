@@ -77,6 +77,14 @@ def test_nic():
     assert wa.dnss[4].name == 'ns3.rdns.ar'
 
 
+def test_without_dns():
+
+    wa = WhoAre()
+    wa.load('sindns.com.ar', mock_from_txt_file='whoare/zone_parsers/ar/sample_whitout_dns.txt')
+    
+    assert len(wa.dnss) == 0
+
+
 def test_fernet():
 
     wa = WhoAre()
