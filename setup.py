@@ -62,6 +62,7 @@ setup(
 
     install_requires=[
         'pytz',  # for localize dates
+        'requests',  # to send recolected data outside
     ], 
     
     # List additional groups of dependencies here (e.g. development

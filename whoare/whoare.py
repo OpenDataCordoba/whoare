@@ -14,6 +14,7 @@ class WhoAre:
         self.domain = None  # Domain Object
         self.registrant = None  # Registrant Objects
         self.dnss = []  # all DNSs objects
+        self.raw_data = None  # whois response
 
     def as_dict(self):
         """ build a nice dict """
@@ -39,6 +40,27 @@ class WhoAre:
             
         return res
 
+    def get_raw(self, domain, host=None, torify=False):
+        if host:
+            command = ['whois', f'-h {host}', domain]
+        else:
+            command = ['whois', domain]
+        
+        if torify:
+            command = ['torify'] + command
+
+        p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        r = p.communicate()[0]
+        raw = r.decode()
+        
+        if p.returncode != 0:
+            error = f'WhoIs error {p.returncode} {raw}'
+            logger.error(error)
+            raise WhoIsCommandError(error)
+        
+        self.raw_data = raw
+        return raw
+
     def load(self, domain, host=None, mock_from_txt_file=None, torify=False):
         """ load domain data. 
                 domain is DOMAIN.ZONE (never use subdomain like www or others)
@@ -62,23 +84,12 @@ class WhoAre:
             raw = f.read()
             f.close()
         else:
-            if host:
-                command = ['whois', f'-h {host}', domain]
-            else:
-                command = ['whois', domain]
+            raw = self.get_raw(domain, host, torify)
             
-            if torify:
-                command = ['torify'] + command
+        return self.load_from_raw(raw)
 
-            p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            r = p.communicate()[0]
-            raw = r.decode()
-            
-            if p.returncode != 0:
-                error = f'WhoIs error {p.returncode} {raw}'
-                logger.error(error)
-                raise WhoIsCommandError(error)
-            
+    def load_from_raw(self, raw):
+
         if self.child.is_free(raw):
             return None
 
@@ -87,8 +98,8 @@ class WhoAre:
 
         self.domain.is_free = False
         # parse raw data
-        self.child.parse(raw, self)       
-
+        self.child.parse(raw, self)
+        
     def detect_zone(self, domain):
         logger.info(f'Detect zone {domain}')
         
