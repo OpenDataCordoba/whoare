@@ -111,10 +111,10 @@ def test_fernet2():
     assert wa.as_dict() == expected_dict
 
 
-def test_torify():
+# def test_torify():
 
-    wa = WhoAre()
-    wa.load('argentina.com.ar', torify=True)
+#     wa = WhoAre()
+#     wa.load('argentina.com.ar', torify=True)
     
 
 def test_idna():
