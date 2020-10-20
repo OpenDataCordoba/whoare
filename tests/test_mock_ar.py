@@ -85,7 +85,7 @@ def test_without_dns():
     assert len(wa.dnss) == 0
 
 
-def test_fernet():
+def test_fernet2():
 
     wa = WhoAre()
     wa.load('fernet.com.ar', mock_from_txt_file='whoare/zone_parsers/ar/sample_fernet.txt')
@@ -109,3 +109,10 @@ def test_fernet():
     }
     
     assert wa.as_dict() == expected_dict
+
+
+def test_torify():
+
+    wa = WhoAre()
+    wa.load('argentina.com.ar', torify=True)
+    

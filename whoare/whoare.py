@@ -39,7 +39,7 @@ class WhoAre:
             
         return res
 
-    def load(self, domain, host=None, mock_from_txt_file=None):
+    def load(self, domain, host=None, mock_from_txt_file=None, torify=False):
         """ load domain data. 
                 domain is DOMAIN.ZONE (never use subdomain like www or others)
                 host could be "whois.nic.ar" of rargentina (optional) 
@@ -66,6 +66,9 @@ class WhoAre:
                 command = ['whois', f'-h {host}', domain]
             else:
                 command = ['whois', domain]
+            
+            if torify:
+                command = ['torify'] + command
 
             p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             r = p.communicate()[0]

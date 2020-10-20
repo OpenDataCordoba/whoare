@@ -4,7 +4,8 @@ python:
 - 3.7
 - 3.8
 before_install:
-- sudo apt-get update
+  - sudo apt-get update
+  - sudo apt install tor
 install:
   - pip install -r requirements.txt
   - pip install -r dev-requirements.txt

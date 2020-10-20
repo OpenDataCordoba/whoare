@@ -18,7 +18,7 @@ Available countries:
 ```python
 from whoare.whoare import WhoAre
 wa = WhoAre()
-wa.load('fernet.com.ar')
+wa.load('fernet.com.ar')  # optional torify=True to run "torify whois ..."
 
 wa.domain.base_name
 'fernet'
