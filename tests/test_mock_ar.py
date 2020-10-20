@@ -116,3 +116,10 @@ def test_torify():
     wa = WhoAre()
     wa.load('argentina.com.ar', torify=True)
     
+
+def test_idna():
+
+    wa = WhoAre()
+    wa.load('cañaconruda.ar', mock_from_txt_file='whoare/zone_parsers/ar/sample_idna.txt')
+    
+    assert wa.domain.base_name == 'cañaconruda'

@@ -50,8 +50,13 @@ class WhoAr:
         if field != 'domain':
             raise UnexpectedParseError(f'Field {field} is not "domain"')
         
-        if value != parent.domain.full_name():
-            raise UnexpectedDomainError(f'Unexpected domain {value} != {parent.domain.full_name()}')
+        fullname = parent.domain.full_name()
+        if value != fullname:
+            # take care of IDNA domains https://github.com/avdata99/whoare/issues/1
+            # xn--caaconruda-u9a.ar != cañaconruda.ar
+            idna_ver = fullname.encode('idna').decode('utf8')
+            if value != idna_ver:
+                raise UnexpectedDomainError(f'Unexpected domain {value} != {parent.domain.full_name()} ({idna_ver})')
         
         # ==========================================
         field, value = self._parse_line(real_lines[1])
