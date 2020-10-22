@@ -25,12 +25,20 @@ def test_data99():
     assert wa.dnss[0].name == 'ns2.cluster311.com'
     assert wa.dnss[1].name == 'ns1.cluster311.com'
 
+    wa2 = WhoAre()
+    wa2.from_dict(data=wa.as_dict())
+    assert wa == wa2
+
 
 def test_free_01():
 
     wa = WhoAre()
     wa.load('domainfree.com.ar', mock_from_txt_file='whoare/zone_parsers/ar/sample_free.txt')
     assert wa.domain.is_free
+
+    wa2 = WhoAre()
+    wa2.from_dict(data=wa.as_dict())
+    assert wa == wa2
 
 def test_fernet():
 
@@ -52,6 +60,9 @@ def test_fernet():
     assert wa.dnss[0].name == 'ns2.sedoparking.com'
     assert wa.dnss[1].name == 'ns1.sedoparking.com'
 
+    wa2 = WhoAre()
+    wa2.from_dict(data=wa.as_dict())
+    assert wa == wa2
 
 def test_nic():
 
@@ -76,6 +87,9 @@ def test_nic():
     assert wa.dnss[3].name == 'ns2.rdns.ar'
     assert wa.dnss[4].name == 'ns3.rdns.ar'
 
+    wa2 = WhoAre()
+    wa2.from_dict(data=wa.as_dict())
+    assert wa == wa2
 
 def test_without_dns():
 
@@ -84,6 +98,9 @@ def test_without_dns():
     
     assert len(wa.dnss) == 0
 
+    wa2 = WhoAre()
+    wa2.from_dict(data=wa.as_dict())
+    assert wa == wa2
 
 def test_fernet2():
 
@@ -95,21 +112,24 @@ def test_fernet2():
             "base_name": 'fernet',
             "zone": 'com.ar',
             "is_free": False,
-            "registered": wa.domain.registered.strftime('%Y-%m-%d %H:%M:%S %Z'),
-            "changed": wa.domain.changed.strftime('%Y-%m-%d %H:%M:%S %Z'),
-            "expire": wa.domain.expire.strftime('%Y-%m-%d %H:%M:%S %Z')
+            "registered": wa.domain.registered.strftime('%Y-%m-%d %H:%M:%S.%f %Z'),
+            "changed": wa.domain.changed.strftime('%Y-%m-%d %H:%M:%S.%f %Z'),
+            "expire": wa.domain.expire.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
             },
         "registrant": {
             "name": wa.registrant.name,
             "legal_uid": wa.registrant.legal_uid,
-            "created": wa.registrant.created.strftime('%Y-%m-%d %H:%M:%S %Z'),
-            "changed": wa.registrant.changed.strftime('%Y-%m-%d %H:%M:%S %Z')
+            "created": wa.registrant.created.strftime('%Y-%m-%d %H:%M:%S.%f %Z'),
+            "changed": wa.registrant.changed.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
         },
         "dnss": ['ns2.sedoparking.com', 'ns1.sedoparking.com']
     }
     
     assert wa.as_dict() == expected_dict
 
+    wa2 = WhoAre()
+    wa2.from_dict(data=wa.as_dict())
+    assert wa == wa2
 
 # def test_torify():
 
@@ -123,3 +143,7 @@ def test_idna():
     wa.load('cañaconruda.ar', mock_from_txt_file='whoare/zone_parsers/ar/sample_idna.txt')
     
     assert wa.domain.base_name == 'cañaconruda'
+
+    wa2 = WhoAre()
+    wa2.from_dict(data=wa.as_dict())
+    assert wa == wa2

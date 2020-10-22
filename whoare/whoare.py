@@ -1,10 +1,13 @@
+from datetime import datetime
 import logging
+import pytz
 import subprocess
 
-from whoare.base import Domain, subclasses
+from whoare.base import Domain, subclasses, Registrant, DNS
 from whoare.exceptions import ZoneNotFoundError, WhoIsCommandError
 
 logger = logging.getLogger(__name__)
+tz = pytz.timezone('America/Argentina/Cordoba')
 
 
 class WhoAre:
@@ -15,30 +18,6 @@ class WhoAre:
         self.registrant = None  # Registrant Objects
         self.dnss = []  # all DNSs objects
         self.raw_data = None  # whois response
-
-    def as_dict(self):
-        """ build a nice dict """
-        res = {
-                "domain": {
-                    "base_name": self.domain.base_name,
-                    "zone": self.domain.zone,
-                    "is_free": self.domain.is_free
-                    }
-                }
-        if not self.domain.is_free:
-            res["domain"]["registered"] = self.domain.registered.strftime('%Y-%m-%d %H:%M:%S %Z')
-            res["domain"]["changed"] = self.domain.changed.strftime('%Y-%m-%d %H:%M:%S %Z')
-            res["domain"]["expire"] = self.domain.expire.strftime('%Y-%m-%d %H:%M:%S %Z')
-            res["registrant"] = {
-                "name": self.registrant.name,
-                "legal_uid": self.registrant.legal_uid,
-                "created": self.registrant.created.strftime('%Y-%m-%d %H:%M:%S %Z'),
-                "changed": self.registrant.changed.strftime('%Y-%m-%d %H:%M:%S %Z')
-                }
-
-            res["dnss"] = [dns.name for dns in self.dnss]
-            
-        return res
 
     def get_raw(self, domain, host=None, torify=False):
         if host:
@@ -64,7 +43,7 @@ class WhoAre:
     def load(self, domain, host=None, mock_from_txt_file=None, torify=False):
         """ load domain data. 
                 domain is DOMAIN.ZONE (never use subdomain like www or others)
-                host could be "whois.nic.ar" of rargentina (optional) 
+                host could be "whois.nic.ar" of argentina (optional) 
             Return a dict with parsed data and fill class properties 
                 mock_from_txt_file could be used to a path with exact whois results """
         
@@ -128,3 +107,88 @@ class WhoAre:
         error = f'Zone not covered "{zone}"'
         logger.error(error)
         raise ZoneNotFoundError(error)
+
+    def as_dict(self):
+        """ build a nice dict """
+        res = {
+                "domain": {
+                    "base_name": self.domain.base_name,
+                    "zone": self.domain.zone,
+                    "is_free": self.domain.is_free
+                    }
+                }
+        if not self.domain.is_free:
+            res["domain"]["registered"] = self.domain.registered.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+            res["domain"]["changed"] = self.domain.changed.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+            res["domain"]["expire"] = self.domain.expire.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+            res["registrant"] = {
+                "name": self.registrant.name,
+                "legal_uid": self.registrant.legal_uid,
+                "created": self.registrant.created.strftime('%Y-%m-%d %H:%M:%S.%f %Z'),
+                "changed": self.registrant.changed.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+                }
+
+            res["dnss"] = [dns.name for dns in self.dnss]
+            
+        logger.info(f'as dict {res}')
+        return res
+
+    def from_dict(self, data):
+        """ load object from dict """
+
+        self.domain = Domain(data['domain']['base_name'], data['domain']['zone'])
+        self.registrant = None
+        self.dnss = []
+        self.domain.is_free = data['domain']['is_free']
+        if self.domain.is_free:
+            return
+        
+        self.domain.registered = tz.localize(datetime.strptime(data["domain"]["registered"], '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
+        self.domain.changed = tz.localize(datetime.strptime(data["domain"]["changed"], '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
+        self.domain.expire = tz.localize(datetime.strptime(data["domain"]["expire"] , '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
+        
+        self.registrant = Registrant(name=data['registrant']['name'], legal_uid=data['registrant']['legal_uid'])
+        self.registrant.created = tz.localize(datetime.strptime(data['registrant']['created'], '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
+        self.registrant.changed = tz.localize(datetime.strptime(data['registrant']['changed'], '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
+
+        for ns in data["dnss"]:
+            self.dnss.append(DNS(name=ns))
+
+    def __eq__(self, wa2):
+        diffs = []
+        if self.domain.base_name != wa2.domain.base_name: 
+            diffs.append(f'domain.base_name {self.domain.base_name} != {wa2.domain.base_name}')
+        if self.domain.zone != wa2.domain.zone:
+            diffs.append(f'domain.zone {self.domain.zone} != {wa2.domain.zone}')
+        if self.domain.is_free != wa2.domain.is_free:
+            diffs.append('domain.is_free')
+        if self.domain.registered != wa2.domain.registered:
+            diffs.append(f'domain.registered {self.domain.registered} != {wa2.domain.registered}')
+        if self.domain.changed != wa2.domain.changed:
+            diffs.append(f'domain.changed {self.domain.changed} != {wa2.domain.changed}')
+        if self.domain.expire != wa2.domain.expire:
+            diffs.append(f'domain.expire {self.domain.expire} != {wa2.domain.expire}')
+        
+        if (self.registrant is None) != (wa2.registrant is None):
+            diffs.append(f'registrant {self.registrant} != {wa2.registrant}')
+        if self.registrant is not None and wa2.registrant is not None:
+            if self.registrant.name != wa2.registrant.name:
+                diffs.append(f'registrant.name {self.registrant.name} != {wa2.registrant.name}')
+            if self.registrant.legal_uid != wa2.registrant.legal_uid:
+                diffs.append(f'registrant.legal_uid {self.registrant.legal_uid} != {wa2.registrant.legal_uid}')
+            if self.registrant.created != wa2.registrant.created:
+                diffs.append(f'registrant.created {self.registrant.created} != {wa2.registrant.created}')
+            if self.registrant.changed != wa2.registrant.changed:
+                diffs.append(f'registrant.changed {self.registrant.changed} != {wa2.registrant.changed}')
+        
+        if len(self.dnss) != len(wa2.dnss): 
+            diffs.append('Len DNSs')
+        else:
+            c = 0
+            for ns in self.dnss:
+                if ns.name != wa2.dnss[c].name:
+                    diffs.append(f'DNS {c}. {ns.name} != {wa2.dnss[c].name}')
+                c += 1
+
+        logger.info(f'DIFFs {diffs}')
+        return len(diffs) == 0
