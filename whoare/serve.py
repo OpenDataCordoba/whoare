@@ -6,6 +6,8 @@ import logging
 from time import sleep
 import requests
 from whoare.whoare import WhoAre
+from whoare import __version__
+
 logger = logging.getLogger(__name__)
 
 
@@ -23,8 +25,6 @@ class WhoAreShare:
         while True:
             domain = self.get_one()
             logger.info(f'Domain {domain}')
-            print(domain)
-            raise
             wa = WhoAre()
             raw = wa.get_raw(domain)
             self.post_one(raw)
@@ -56,10 +56,13 @@ class WhoAreShare:
         
         return jresponse[0]['domain']
     
-    def post_one(self, raw):
-        logger.info('POST one')
+    def post_one(self, wa):
+        logger.info(f'POST {wa}')
         headers = {'Authorization': f'Token {self.token}'}
-        data = {'raw': raw}
+        data = {
+            'whoare_version': __version__,
+            'data': wa.as_dict()
+            }
         response = requests.post(self.post_url, data=data, headers=headers)
         jresponse = response.json()
         logger.info(f' - POST {jresponse}')
@@ -68,7 +71,7 @@ class WhoAreShare:
 def main():
     parser = argparse.ArgumentParser(prog='whoare-share')
     parser.add_argument('--get', nargs='?', help='URL to get domains from', type=str, default='https://nic.opendatacordoba.org/api/v1/dominios/next-priority/')
-    parser.add_argument('--post', nargs='?', help='URL to post results to', type=str, required=True)
+    parser.add_argument('--post', nargs='?', help='URL to post results to', type=str, default='https://nic.opendatacordoba.org/api/v1/dominios/dominio/')
     parser.add_argument('--token', nargs='?', help='Token to use as Header Autorization', type=str, required=True)
     parser.add_argument('--torify', nargs='?', type=bool, default=True, help='Use torify for WhoIs command')
     parser.add_argument('--pause', nargs='?', help='Pause between calls', default=41, type=int)

@@ -26,14 +26,14 @@ class WhoAre:
                     }
                 }
         if not self.domain.is_free:
-            res["domain"]["registered"] = self.domain.registered
-            res["domain"]["changed"] = self.domain.changed
-            res["domain"]["expire"] = self.domain.expire
+            res["domain"]["registered"] = self.domain.registered.strftime('%Y-%m-%d %H:%M:%S %Z')
+            res["domain"]["changed"] = self.domain.changed.strftime('%Y-%m-%d %H:%M:%S %Z')
+            res["domain"]["expire"] = self.domain.expire.strftime('%Y-%m-%d %H:%M:%S %Z')
             res["registrant"] = {
                 "name": self.registrant.name,
                 "legal_uid": self.registrant.legal_uid,
-                "created": self.registrant.created,
-                "changed": self.registrant.changed
+                "created": self.registrant.created.strftime('%Y-%m-%d %H:%M:%S %Z'),
+                "changed": self.registrant.changed.strftime('%Y-%m-%d %H:%M:%S %Z')
                 }
 
             res["dnss"] = [dns.name for dns in self.dnss]
