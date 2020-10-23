@@ -1,19 +1,10 @@
 language: python
-dist: xenial
-os: linux
 python:
 - 3.6
 - 3.7
 - 3.8
-
-# env:
-#   global:
-#     - PYPI_VERSION=wget -qO- https://pypi.org/pypi/whoare/json | jq '.info.version'
-#     - HERE_VERSION=echo -e "from whoare import __version__\nprint(f'\"{__version__}\"')" | python
-
 before_install:
   - sudo apt-get update
-  - 
 install:
   - pip install -r requirements.txt
   - pip install -r dev-requirements.txt
@@ -33,4 +24,3 @@ deploy:
     tags: true
     python: 3.8
     branch: master
-    # condition: $PYPI_VERSION != $HERE_VERSION
