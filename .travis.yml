@@ -24,4 +24,4 @@ deploy:
   on:
     python: 3.8
     branch: master
-    condition: $REQUIRE_PYPI_UPDATE=true
+    condition: $REQUIRE_PYPI_UPDATE = true
