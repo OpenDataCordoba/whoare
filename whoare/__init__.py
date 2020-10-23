@@ -1,6 +1,10 @@
-__version__ = '0.1.30'
+package_name = 'whoare'
+__version__ = '0.1.31'
 
-# env:
-#   global:
-#     - PYPI_VERSION=wget -qO- https://pypi.org/pypi/whoare/json | jq '.info.version'
-#     - HERE_VERSION=echo -e "from whoare import __version__\nprint(f'\"{__version__}\"')" | python
+def require_update_pypi():
+    import requests
+    response = requests.get(f'https://pypi.org/pypi/{package_name}/json')
+    data = response.json()
+    pypi_version = data['info']['version']
+
+    return pypi_version != __version__
