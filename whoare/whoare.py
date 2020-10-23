@@ -192,3 +192,52 @@ class WhoAre:
 
         logger.info(f'DIFFs {diffs}')
         return len(diffs) == 0
+
+    def as_plain_dict(self):
+        """ build a nice dict """
+        res = {
+            "domain_base_name": self.domain.base_name,
+            "domain_zone": self.domain.zone,
+            "domain_is_free": self.domain.is_free
+            }
+
+        if not self.domain.is_free:
+            res["domain_registered"] = self.domain.registered.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+            res["domain_changed"] = self.domain.changed.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+            res["domain_expire"] = self.domain.expire.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+            res["registrant_name"] = self.registrant.name
+            res["registrant_legal_uid"] = self.registrant.legal_uid
+            res["registrant_created"] = self.registrant.created.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+            res["registrant_changed"] = self.registrant.changed.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+
+            c = 1
+            for dns in self.dnss:
+                res[f"dns{c}"] = dns.name
+                c += 1
+            
+        logger.info(f'as plain dict {res}')
+        return res
+
+    def from_plain_dict(self, data):
+        """ load object from dict """
+
+        self.domain = Domain(data['domain_base_name'], data['domain_zone'])
+        self.registrant = None
+        self.dnss = []
+        self.domain.is_free = data['domain_is_free']
+        if self.domain.is_free:
+            return
+        
+        self.domain.registered = tz.localize(datetime.strptime(data["domain_registered"], '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
+        self.domain.changed = tz.localize(datetime.strptime(data["domain_changed"], '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
+        self.domain.expire = tz.localize(datetime.strptime(data["domain_expire"] , '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
+        
+        self.registrant = Registrant(name=data['registrant_name'], legal_uid=data['registrant_legal_uid'])
+        self.registrant.created = tz.localize(datetime.strptime(data['registrant_created'], '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
+        self.registrant.changed = tz.localize(datetime.strptime(data['registrant_changed'], '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
+
+        for c in range(1, 20):
+            if f"dns{c}" in data:
+                self.dnss.append(DNS(name=data[f"dns{c}"]))
+            else:
+                break

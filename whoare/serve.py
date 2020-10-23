@@ -2,9 +2,11 @@
 Iterate over priority domains and send data to server
 """
 import argparse
+import json
 import logging
 from time import sleep
 import requests
+import sys
 from whoare.whoare import WhoAre
 from whoare import __version__
 
@@ -23,22 +25,32 @@ class WhoAreShare:
         """ get domains and _whois_ them """
         logger.info('Start runing')
         while True:
+            
             domain = self.get_one()
             logger.info(f'Domain {domain}')
+
             wa = WhoAre()
-            raw = wa.get_raw(domain)
-            self.post_one(raw)
+            try:
+                wa.load(domain)
+            except:
+                pass
+            else:
+                self.post_one(wa)
 
             # if torify start a second queue
             if self.torify:
                 domain = self.get_one()
                 logger.info(f'Domain {domain} torify')
                 wa = WhoAre()
-                raw = wa.get_raw(domain, torify=True)
-                self.post_one(raw)
-            
+                try:
+                    wa.load(domain, torify=True)
+                except:
+                    pass
+                else:
+                    self.post_one(wa)
+
             sleep(self.pause_between_calls)
-                
+                            
     def get_one(self):
         logger.info('Getting one')
         headers = {'Authorization': f'Token {self.token}'}
@@ -59,19 +71,32 @@ class WhoAreShare:
     def post_one(self, wa):
         logger.info(f'POST {wa}')
         headers = {'Authorization': f'Token {self.token}'}
-        data = {
-            'whoare_version': __version__,
-            'data': wa.as_dict()
-            }
-        response = requests.post(self.post_url, data=data, headers=headers)
+        data = wa.as_dict()
+        data['whoare_version'] = __version__
+        logger.info(f'POSTing {data}')
+        str_data = json.dumps(data)
+        final = {'domain': str_data}
+        response = requests.post(self.post_url, data=final, headers=headers)
         jresponse = response.json()
         logger.info(f' - POST {jresponse}')
         return jresponse['ok']
 
 def main():
+        
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    base_domain = 'http://localhost:8000'  # 'https://nic.opendatacordoba.org'
+    default_get = f'{base_domain}/api/v1/dominios/next-priority/'
+    default_post = f'{base_domain}/api/v1/dominios/dominio/update_from_whoare/'
+    
     parser = argparse.ArgumentParser(prog='whoare-share')
-    parser.add_argument('--get', nargs='?', help='URL to get domains from', type=str, default='https://nic.opendatacordoba.org/api/v1/dominios/next-priority/')
-    parser.add_argument('--post', nargs='?', help='URL to post results to', type=str, default='https://nic.opendatacordoba.org/api/v1/dominios/dominio/')
+    parser.add_argument('--get', nargs='?', help='URL to get domains from', type=str, default=default_get)
+    parser.add_argument('--post', nargs='?', help='URL to post results to', type=str, default=default_post)
     parser.add_argument('--token', nargs='?', help='Token to use as Header Autorization', type=str, required=True)
     parser.add_argument('--torify', nargs='?', type=bool, default=True, help='Use torify for WhoIs command')
     parser.add_argument('--pause', nargs='?', help='Pause between calls', default=41, type=int)
