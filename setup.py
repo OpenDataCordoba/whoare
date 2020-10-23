@@ -8,11 +8,8 @@ here = pathlib.Path(__file__).parent.resolve()
 # Get the long description from the README file
 long_description = (here / 'README.md').read_text(encoding='utf-8')
 
-# Arguments marked as "Required" below must be included for upload to PyPI.
-# Fields marked as "Optional" may be commented out.
-
 setup(
-    name='whoare',  
+    name='whoare',
     version=__version__,
     description='Another whois scraper',
     long_description=long_description,  # Optional

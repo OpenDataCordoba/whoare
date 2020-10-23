@@ -3,9 +3,13 @@ python:
 - 3.6
 - 3.7
 - 3.8
+env:
+  global:
+    - PYPI_VERSION=wget -qO- https://pypi.org/pypi/whoare/json | jq '.info.version'
+    - HERE_VERSION=echo -e "from whoare import __version__\nprint(f'\"{__version__}\"')" | python
 before_install:
   - sudo apt-get update
-  - sudo apt install tor
+  - 
 install:
   - pip install -r requirements.txt
   - pip install -r dev-requirements.txt
@@ -22,5 +26,7 @@ deploy:
     secure: GRqYkwQU9E67AXt/1c07G7ohGdSESLRjfuxM/G5Fbyd5m34VtgKDK4dlekuLi9ezltGNSqVwDQhjQHJsbk6T9hDPIFkI5YaJn4+5uT3Fkf1ef0o+5dFPxrt4F6eCBEZSbz1B/rbyJshDCiEqOUxFTLu8VheFzmzxsKDr98snZJW67Sfxsi7LWNg4XerO6pPPc3dryaRzNvqCWoDF9sSitoiVQN+ST1++wPCVr1QGdOaM2DeIw/9MfLWsNaB9gfsRe8OfcBJh4SNz0h+50p0G0nfSZl0xqbu4O5flLCLT5aL8jJ9qtwIS8rqSmgPIVYO4z96ClaCYvtSdjEktLTXT9kIdCWB0S6Ag6fBh/ly1japEiKRn8ikbKrh44PpDeQzNlY28GYWHC0TWaBF4Opb66CHMSnS7qAo9geqflakg6KPTDn3yxlaPT4NzoSWlsqHMgIAYsPaxmKoGdK9MQUAWTk0+nQgzHK9dVt5JgSVLJBOrnMk0sKC0xdeDctoTdXhLrrcLiyHYArYz0wnA/tlWbfbaBXBOyycYHuIHPUgr7AhLqdU3OObiBnVDF1H9z9rqLVMYj/8JUoFwiNBx20MgjEQUcCcg8P89x8cexOTfPAa/VMh7XKpY1aQ5NZj4tslcYy1QVS533I4I0VRVbxbI1ZRv9mABwWIyKHPR6IEWKMk=
   distributions: sdist bdist_wheel
   on:
-    tags: true
+    # tags: true
     python: 3.8
+    branch: master
+    condition: $PYPI_VERSION != $HERE_VERSION
