@@ -90,7 +90,8 @@ def main():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-    base_domain = 'http://localhost:8000'  # 'https://nic.opendatacordoba.org'
+    # base_domain = 'http://localhost:8000'
+    base_domain = 'https://nic.opendatacordoba.org'
     default_get = f'{base_domain}/api/v1/dominios/next-priority/'
     default_post = f'{base_domain}/api/v1/dominios/dominio/update_from_whoare/'
     
