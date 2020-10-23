@@ -1,25 +1,17 @@
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
 import pathlib
+from whoare import __version__
 
 here = pathlib.Path(__file__).parent.resolve()
 
 # Get the long description from the README file
 long_description = (here / 'README.md').read_text(encoding='utf-8')
 
-# Arguments marked as "Required" below must be included for upload to PyPI.
-# Fields marked as "Optional" may be commented out.
-
 setup(
-    name='whoare',  
-    # Versions should comply with PEP 440:
-    # https://www.python.org/dev/peps/pep-0440/
-    #
-    # For a discussion on single-sourcing the version across setup.py and the
-    # project code, see
-    # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.1.28',  # Required
-    description='A whois scraper',
+    name='whoare',
+    version=__version__,
+    description='Another whois scraper',
     long_description=long_description,  # Optional
     long_description_content_type='text/markdown',  # Optional (see note above)
 
@@ -36,7 +28,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
@@ -62,6 +54,7 @@ setup(
 
     install_requires=[
         'pytz',  # for localize dates
+        'requests',  # to send recolected data outside
     ], 
     
     # List additional groups of dependencies here (e.g. development
@@ -98,12 +91,9 @@ setup(
     #
     # For example, the following would provide a command called `sample` which
     # executes the function `main` from this package when invoked:
-    entry_points={  # Optional
-        # 'console_scripts': [
-        #     'sample=sample:main',
-        # ],
+    entry_points = {
+        'console_scripts': ['whoare-serve=whoare.serve:main'],
     },
-
     # List additional URLs that are relevant to your project as a dict.
     #
     # This field corresponds to the "Project-URL" metadata fields:

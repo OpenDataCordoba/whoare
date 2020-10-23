@@ -117,15 +117,15 @@ def test_fernet(mock_subproc_popen):
             "base_name": 'fernet',
             "zone": 'com.ar',
             "is_free": False,
-            "registered": wa.domain.registered,
-            "changed": wa.domain.changed,
-            "expire": wa.domain.expire
+            "registered": wa.domain.registered.strftime('%Y-%m-%d %H:%M:%S.%f %Z'),
+            "changed": wa.domain.changed.strftime('%Y-%m-%d %H:%M:%S.%f %Z'),
+            "expire": wa.domain.expire.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
             },
         "registrant": {
             "name": wa.registrant.name,
             "legal_uid": wa.registrant.legal_uid,
-            "created": wa.registrant.created,
-            "changed": wa.registrant.changed
+            "created": wa.registrant.created.strftime('%Y-%m-%d %H:%M:%S.%f %Z'),
+            "changed": wa.registrant.changed.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
         },
         "dnss": ['ns2.sedoparking.com', 'ns1.sedoparking.com']
     }
