@@ -13,8 +13,9 @@ before_script:
 - flake8 whoare --count --select=E9,F63,F7,F82 --show-source --statistics
 - flake8 whoare --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 script:
-- python -m pytest -s
 - source test_require_update.sh
+- echo "Require update $REQUIRE_PYPI_UPDATE"
+- python -m pytest -s
 deploy:
   provider: pypi
   username: __token__
