@@ -2,9 +2,7 @@ language: python
 os: linux
 dist: xenial
 python: 
-   - 3.8    
-env: 
-  - TZ=UTC
+   - 3.8
 before_install:
   - sudo apt-get update
 install:

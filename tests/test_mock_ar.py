@@ -132,15 +132,15 @@ def test_fernet2():
             "base_name": 'fernet',
             "zone": 'com.ar',
             "is_free": False,
-            "registered": wa.domain.registered.strftime('%Y-%m-%d %H:%M:%S.%f %Z'),
-            "changed": wa.domain.changed.strftime('%Y-%m-%d %H:%M:%S.%f %Z'),
-            "expire": wa.domain.expire.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+            "registered": wa.domain.registered.strftime('%Y-%m-%d %H:%M:%S.%f %z'),
+            "changed": wa.domain.changed.strftime('%Y-%m-%d %H:%M:%S.%f %z'),
+            "expire": wa.domain.expire.strftime('%Y-%m-%d %H:%M:%S.%f %z')
             },
         "registrant": {
             "name": wa.registrant.name,
             "legal_uid": wa.registrant.legal_uid,
-            "created": wa.registrant.created.strftime('%Y-%m-%d %H:%M:%S.%f %Z'),
-            "changed": wa.registrant.changed.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+            "created": wa.registrant.created.strftime('%Y-%m-%d %H:%M:%S.%f %z'),
+            "changed": wa.registrant.changed.strftime('%Y-%m-%d %H:%M:%S.%f %z')
         },
         "dnss": ['ns2.sedoparking.com', 'ns1.sedoparking.com']
     }
@@ -151,13 +151,13 @@ def test_fernet2():
         "domain_base_name": 'fernet',
         "domain_zone": 'com.ar',
         "domain_is_free": False,
-        "domain_registered": wa.domain.registered.strftime('%Y-%m-%d %H:%M:%S.%f %Z'),
-        "domain_changed": wa.domain.changed.strftime('%Y-%m-%d %H:%M:%S.%f %Z'),
-        "domain_expire": wa.domain.expire.strftime('%Y-%m-%d %H:%M:%S.%f %Z'),
+        "domain_registered": wa.domain.registered.strftime('%Y-%m-%d %H:%M:%S.%f %z'),
+        "domain_changed": wa.domain.changed.strftime('%Y-%m-%d %H:%M:%S.%f %z'),
+        "domain_expire": wa.domain.expire.strftime('%Y-%m-%d %H:%M:%S.%f %z'),
         "registrant_name": wa.registrant.name,
         "registrant_legal_uid": wa.registrant.legal_uid,
-        "registrant_created": wa.registrant.created.strftime('%Y-%m-%d %H:%M:%S.%f %Z'),
-        "registrant_changed": wa.registrant.changed.strftime('%Y-%m-%d %H:%M:%S.%f %Z'),
+        "registrant_created": wa.registrant.created.strftime('%Y-%m-%d %H:%M:%S.%f %z'),
+        "registrant_changed": wa.registrant.changed.strftime('%Y-%m-%d %H:%M:%S.%f %z'),
         "dns1": 'ns2.sedoparking.com',
         "dns2": 'ns1.sedoparking.com'
     }

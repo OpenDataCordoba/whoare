@@ -118,14 +118,14 @@ class WhoAre:
                     }
                 }
         if not self.domain.is_free:
-            res["domain"]["registered"] = self.domain.registered.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
-            res["domain"]["changed"] = self.domain.changed.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
-            res["domain"]["expire"] = self.domain.expire.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+            res["domain"]["registered"] = self.domain.registered.strftime('%Y-%m-%d %H:%M:%S.%f %z')
+            res["domain"]["changed"] = self.domain.changed.strftime('%Y-%m-%d %H:%M:%S.%f %z')
+            res["domain"]["expire"] = self.domain.expire.strftime('%Y-%m-%d %H:%M:%S.%f %z')
             res["registrant"] = {
                 "name": self.registrant.name,
                 "legal_uid": self.registrant.legal_uid,
-                "created": self.registrant.created.strftime('%Y-%m-%d %H:%M:%S.%f %Z'),
-                "changed": self.registrant.changed.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+                "created": self.registrant.created.strftime('%Y-%m-%d %H:%M:%S.%f %z'),
+                "changed": self.registrant.changed.strftime('%Y-%m-%d %H:%M:%S.%f %z')
                 }
 
             res["dnss"] = [dns.name for dns in self.dnss]
@@ -143,13 +143,13 @@ class WhoAre:
         if self.domain.is_free:
             return
         
-        self.domain.registered = tz.localize(datetime.strptime(data["domain"]["registered"], '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
-        self.domain.changed = tz.localize(datetime.strptime(data["domain"]["changed"], '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
-        self.domain.expire = tz.localize(datetime.strptime(data["domain"]["expire"] , '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
+        self.domain.registered = tz.localize(datetime.strptime(data["domain"]["registered"], '%Y-%m-%d %H:%M:%S.%f %z'), is_dst=True)
+        self.domain.changed = tz.localize(datetime.strptime(data["domain"]["changed"], '%Y-%m-%d %H:%M:%S.%f %z'), is_dst=True)
+        self.domain.expire = tz.localize(datetime.strptime(data["domain"]["expire"] , '%Y-%m-%d %H:%M:%S.%f %z'), is_dst=True)
         
         self.registrant = Registrant(name=data['registrant']['name'], legal_uid=data['registrant']['legal_uid'])
-        self.registrant.created = tz.localize(datetime.strptime(data['registrant']['created'], '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
-        self.registrant.changed = tz.localize(datetime.strptime(data['registrant']['changed'], '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
+        self.registrant.created = tz.localize(datetime.strptime(data['registrant']['created'], '%Y-%m-%d %H:%M:%S.%f %z'), is_dst=True)
+        self.registrant.changed = tz.localize(datetime.strptime(data['registrant']['changed'], '%Y-%m-%d %H:%M:%S.%f %z'), is_dst=True)
 
         for ns in data["dnss"]:
             self.dnss.append(DNS(name=ns))
@@ -202,13 +202,13 @@ class WhoAre:
             }
 
         if not self.domain.is_free:
-            res["domain_registered"] = self.domain.registered.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
-            res["domain_changed"] = self.domain.changed.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
-            res["domain_expire"] = self.domain.expire.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+            res["domain_registered"] = self.domain.registered.strftime('%Y-%m-%d %H:%M:%S.%f %z')
+            res["domain_changed"] = self.domain.changed.strftime('%Y-%m-%d %H:%M:%S.%f %z')
+            res["domain_expire"] = self.domain.expire.strftime('%Y-%m-%d %H:%M:%S.%f %z')
             res["registrant_name"] = self.registrant.name
             res["registrant_legal_uid"] = self.registrant.legal_uid
-            res["registrant_created"] = self.registrant.created.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
-            res["registrant_changed"] = self.registrant.changed.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+            res["registrant_created"] = self.registrant.created.strftime('%Y-%m-%d %H:%M:%S.%f %z')
+            res["registrant_changed"] = self.registrant.changed.strftime('%Y-%m-%d %H:%M:%S.%f %z')
 
             c = 1
             for dns in self.dnss:
@@ -228,13 +228,13 @@ class WhoAre:
         if self.domain.is_free:
             return
         
-        self.domain.registered = tz.localize(datetime.strptime(data["domain_registered"], '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
-        self.domain.changed = tz.localize(datetime.strptime(data["domain_changed"], '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
-        self.domain.expire = tz.localize(datetime.strptime(data["domain_expire"] , '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
+        self.domain.registered = tz.localize(datetime.strptime(data["domain_registered"], '%Y-%m-%d %H:%M:%S.%f %z'), is_dst=True)
+        self.domain.changed = tz.localize(datetime.strptime(data["domain_changed"], '%Y-%m-%d %H:%M:%S.%f %z'), is_dst=True)
+        self.domain.expire = tz.localize(datetime.strptime(data["domain_expire"] , '%Y-%m-%d %H:%M:%S.%f %z'), is_dst=True)
         
         self.registrant = Registrant(name=data['registrant_name'], legal_uid=data['registrant_legal_uid'])
-        self.registrant.created = tz.localize(datetime.strptime(data['registrant_created'], '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
-        self.registrant.changed = tz.localize(datetime.strptime(data['registrant_changed'], '%Y-%m-%d %H:%M:%S.%f %Z'), is_dst=True)
+        self.registrant.created = tz.localize(datetime.strptime(data['registrant_created'], '%Y-%m-%d %H:%M:%S.%f %z'), is_dst=True)
+        self.registrant.changed = tz.localize(datetime.strptime(data['registrant_changed'], '%Y-%m-%d %H:%M:%S.%f %z'), is_dst=True)
 
         for c in range(1, 20):
             if f"dns{c}" in data:

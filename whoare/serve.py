@@ -14,44 +14,72 @@ logger = logging.getLogger(__name__)
 
 
 class WhoAreShare:
-    def __init__(self, get_domains_url, post_url, token, torify=True, pause_between_calls=41):
+    def __init__(self, get_domains_url, post_url, token, torify=True, pause_between_calls=41, from_path=None):
         self.torify = torify  # use local IP and also torify
         self.post_url = post_url  # destination URL to share data (will be processed outside)
         self.token = token
         self.get_domains_url = get_domains_url  # URL to get domains from
         self.pause_between_calls = pause_between_calls
+        self.from_path = from_path
 
     def run(self):
         """ get domains and _whois_ them """
-        logger.info('Start runing')
+        if self.from_path is not None:
+            self.run_from_path(self.from_path)
+        else:
+            self.run_from_priority()
+
+    def run_from_priority(self):
+        """ get priority domains from API """
+        logger.info('Start runing from priority')
         while True:
             
             domain = self.get_one()
-            logger.info(f'Domain {domain}')
-
-            wa = WhoAre()
-            try:
-                wa.load(domain)
-            except:
-                pass
-            else:
-                self.post_one(wa)
+            self.load_one(domain, torify=False)
 
             # if torify start a second queue
             if self.torify:
-                domain = self.get_one()
-                logger.info(f'Domain {domain} torify')
-                wa = WhoAre()
-                try:
-                    wa.load(domain, torify=True)
-                except:
-                    pass
-                else:
-                    self.post_one(wa)
-
+                self.load_one(domain, torify=True)
+            
             sleep(self.pause_between_calls)
-                            
+    
+    def run_from_path(self, path):
+        """ open a file and update those domains """
+        f = open(path)
+        domain_data = f.read()
+        f.close()
+
+        domain_list = domain_data.split('\n')
+
+        c = 0
+        while True:
+            
+            domain = domain_list[c]
+            self.load_one(domain, torify=False)
+
+            if self.torify:
+                c += 1
+                if c >= len(domain_list): break
+                domain = domain_list[c]
+                self.load_one(domain, torify=True)
+            
+            c += 1
+            if c >= len(domain_list): break
+
+    def load_one(self, domain, torify):
+        """ analyze and push one domain """
+        logger.info(f'Domain {domain} {torify}')
+
+        wa = WhoAre()
+        try:
+            wa.load(domain, torify=torify)
+        except:
+            pass
+        else:
+            self.post_one(wa)
+
     def get_one(self):
+        """ get the next priority from API """
         logger.info('Getting one')
         headers = {'Authorization': f'Token {self.token}'}
         response = requests.get(self.get_domains_url, headers=headers)
@@ -69,6 +97,7 @@ class WhoAreShare:
         return jresponse[0]['domain']
     
     def post_one(self, wa):
+        """ post results to server """
         logger.info(f'POST {wa}')
         headers = {'Authorization': f'Token {self.token}'}
         data = wa.as_dict()
@@ -101,6 +130,7 @@ def main():
     parser.add_argument('--token', nargs='?', help='Token to use as Header Autorization', type=str, required=True)
     parser.add_argument('--torify', nargs='?', type=bool, default=True, help='Use torify for WhoIs command')
     parser.add_argument('--pause', nargs='?', help='Pause between calls', default=41, type=int)
+    parser.add_argument('--from_path', nargs='?', help='If not used we will get priorities from API. This is usted for new-domain lists', type=str)
     
     args = parser.parse_args()
 
@@ -109,7 +139,8 @@ def main():
         post_url=args.post,
         token=args.token,
         torify=args.torify,
-        pause_between_calls=args.pause
+        pause_between_calls=args.pause,
+        from_path=args.from_path
     )
 
     was.run()

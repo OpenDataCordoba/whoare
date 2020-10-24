@@ -150,5 +150,5 @@ class WhoAr:
             res = datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S')
 
         res = tz.localize(res, is_dst=True)        
-        logger.debug(f'_get_nic_date {date_str} {res}')
+        # logger.debug(f'_get_nic_date {date_str} {res}')
         return res
