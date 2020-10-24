@@ -4,7 +4,7 @@ dist: xenial
 python: 
    - 3.8    
 env: 
-  - TZ=UTC-3
+  - TZ=UTC
 before_install:
   - sudo apt-get update
 install:
