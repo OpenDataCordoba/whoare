@@ -22,6 +22,11 @@ class WhoAreShare:
         self.pause_between_calls = pause_between_calls
         self.from_path = from_path
 
+        self.sin_cambios = 0
+        self.caidos = 0
+        self.nuevos = 0
+        self.renovados = 0
+
     def run(self):
         """ get domains and _whois_ them """
         if self.from_path is not None:
@@ -69,7 +74,7 @@ class WhoAreShare:
 
     def load_one(self, domain, torify):
         """ analyze and push one domain """
-        logger.info(f'Domain {domain} {torify}')
+        logger.info(f'Domain {domain} tor:{torify}')
 
         wa = WhoAre()
         try:
@@ -99,7 +104,6 @@ class WhoAreShare:
     
     def post_one(self, wa):
         """ post results to server """
-        logger.info(f'POST {wa}')
         headers = {'Authorization': f'Token {self.token}'}
         data = wa.as_dict()
         data['whoare_version'] = __version__
@@ -109,14 +113,32 @@ class WhoAreShare:
         response = requests.post(self.post_url, data=final, headers=headers)
         jresponse = response.json()
         logger.info(f' - POST {jresponse}')
+        self.analyze_changes(jresponse['cambios'])
         return jresponse['ok']
+    
+    def analyze_changes(self, cambios):   
+        if cambios == []:
+            self.sin_cambios += 1
+        elif 'estado' in [c['campo'] for c in cambios]:
+            for cambio in cambios:
+                if cambio['campo'] == 'estado':
+                    if cambio['anterior'] == 'disponible':
+                        self.nuevos += 1
+                    elif cambio['anterior'] == 'no disponible':
+                        self.caidos += 1
+        elif 'dominio_expire' in [c['campo'] for c in cambios]:
+            self.renovados += 1
+        
+        logger.info(f'STATUS. renovados:{self.renovados} caidos:{self.caidos} sin cambios:{self.sin_cambios} nuevos:{self.nuevos}')
+
 
 def main():
         
     logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('%(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
