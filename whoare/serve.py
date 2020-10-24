@@ -63,6 +63,7 @@ class WhoAreShare:
                 domain = domain_list[c]
                 self.load_one(domain, torify=True)
             
+            sleep(self.pause_between_calls)
             c += 1
             if c >= len(domain_list): break
 
