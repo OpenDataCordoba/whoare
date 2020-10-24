@@ -24,5 +24,5 @@ deploy:
   distributions: sdist bdist_wheel
   on:
     python: 3.8
-    branch: master
+    branch: main
     condition: $REQUIRE_PYPI_UPDATE = true
