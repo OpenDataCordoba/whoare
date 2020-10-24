@@ -22,6 +22,7 @@ class WhoAreShare:
         self.pause_between_calls = pause_between_calls
         self.from_path = from_path
 
+        self.total_analizados = 0
         self.sin_cambios = 0
         self.caidos = 0
         self.nuevos = 0
@@ -42,12 +43,13 @@ class WhoAreShare:
             domain = self.get_one()
             self.load_one(domain, torify=False)
 
+            sleep(self.pause_between_calls / 2)
             # if torify start a second queue
             if self.torify:
                 domain = self.get_one()
                 self.load_one(domain, torify=True)
             
-            sleep(self.pause_between_calls)
+            sleep(self.pause_between_calls / 2)
     
     def run_from_path(self, path):
         """ open a file and update those domains """
@@ -75,7 +77,7 @@ class WhoAreShare:
 
     def load_one(self, domain, torify):
         """ analyze and push one domain """
-        logger.info(f'Domain {domain} tor:{torify}')
+        logger.debug(f'Domain {domain} tor:{torify}')
 
         wa = WhoAre()
         try:
@@ -87,8 +89,10 @@ class WhoAreShare:
 
     def get_one(self):
         """ get the next priority from API """
-        logger.info('Getting one')
+        logger.debug('Getting one')
         headers = {'Authorization': f'Token {self.token}'}
+        # if I ask 2, I get the same (?)
+        # didn't worked data = {'order': str(self.total_analizados)}
         response = requests.get(self.get_domains_url, headers=headers)
         if response.status_code != 200:
             raise ValueError(f'Error GET status {response.status_code}: {response.text}')
@@ -99,7 +103,7 @@ class WhoAreShare:
             print(f'ERROR parsing {response.text}')
             raise
         
-        logger.info(f' - Get {jresponse}')
+        logger.info(f" - Get {jresponse[0]['domain']}")
         
         return jresponse[0]['domain']
     
@@ -108,12 +112,12 @@ class WhoAreShare:
         headers = {'Authorization': f'Token {self.token}'}
         data = wa.as_dict()
         data['whoare_version'] = __version__
-        logger.info(f'POSTing {data}')
+        logger.debug(f'POSTing {data}')
         str_data = json.dumps(data)
         final = {'domain': str_data}
         response = requests.post(self.post_url, data=final, headers=headers)
         jresponse = response.json()
-        logger.info(f' - POST {jresponse}')
+        logger.debug(f' - POST {jresponse}')
         self.analyze_changes(jresponse['cambios'])
         return jresponse['ok']
     
@@ -129,19 +133,13 @@ class WhoAreShare:
                         self.caidos += 1
         elif 'dominio_expire' in [c['campo'] for c in cambios]:
             self.renovados += 1
+
+        self.total_analizados += 1
         
-        logger.info(f'STATUS. renovados:{self.renovados} caidos:{self.caidos} sin cambios:{self.sin_cambios} nuevos:{self.nuevos}')
+        logger.info(f'STATUS [{self.total_analizados}] renovados:{self.renovados} caidos:{self.caidos} sin cambios:{self.sin_cambios} nuevos:{self.nuevos}')
 
 
 def main():
-        
-    logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG)
-    # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    formatter = logging.Formatter('%(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
 
     # base_domain = 'http://localhost:8000'
     base_domain = 'https://nic.opendatacordoba.org'
@@ -155,8 +153,22 @@ def main():
     parser.add_argument('--torify', nargs='?', type=bool, default=True, help='Use torify for WhoIs command')
     parser.add_argument('--pause', nargs='?', help='Pause between calls', default=41, type=int)
     parser.add_argument('--from_path', nargs='?', help='If not used we will get priorities from API. This is usted for new-domain lists', type=str)
+    parser.add_argument('--log_level', nargs='?', default='INFO', type=str)
     
     args = parser.parse_args()
+
+    if args.log_level == 'INFO':
+        log_level = logging.INFO
+    elif args.log_level == 'DEBUG':
+        log_level = logging.DEBUG
+    
+    logger.setLevel(log_level)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(log_level)
+    # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('%(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
     was = WhoAreShare(
         get_domains_url=args.get,
