@@ -44,6 +44,7 @@ class WhoAreShare:
 
             # if torify start a second queue
             if self.torify:
+                domain = self.get_one()
                 self.load_one(domain, torify=True)
             
             sleep(self.pause_between_calls)
