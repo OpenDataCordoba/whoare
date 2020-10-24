@@ -27,6 +27,7 @@ class WhoAreShare:
         self.caidos = 0
         self.nuevos = 0
         self.renovados = 0
+        self.errores = 0
 
     def run(self):
         """ get domains and _whois_ them """
@@ -43,13 +44,12 @@ class WhoAreShare:
             domain = self.get_one()
             self.load_one(domain, torify=False)
 
-            sleep(self.pause_between_calls / 2)
             # if torify start a second queue
             if self.torify:
                 domain = self.get_one()
                 self.load_one(domain, torify=True)
             
-            sleep(self.pause_between_calls / 2)
+            sleep(self.pause_between_calls)
     
     def run_from_path(self, path):
         """ open a file and update those domains """
@@ -82,8 +82,9 @@ class WhoAreShare:
         wa = WhoAre()
         try:
             wa.load(domain, torify=torify)
-        except:
-            pass
+        except Exception as e:
+            logger.error(f'Whois ERROR {e}')
+            self.errores += 1
         else:
             self.post_one(wa)
 
@@ -136,7 +137,7 @@ class WhoAreShare:
 
         self.total_analizados += 1
         
-        logger.info(f'STATUS [{self.total_analizados}] renovados:{self.renovados} caidos:{self.caidos} sin cambios:{self.sin_cambios} nuevos:{self.nuevos}')
+        logger.info(f'STATUS [{self.total_analizados}]{self.errores} renovados:{self.renovados} caidos:{self.caidos} sin cambios:{self.sin_cambios} nuevos:{self.nuevos}')
 
 
 def main():
