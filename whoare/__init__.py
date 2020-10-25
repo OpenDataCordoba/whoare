@@ -1,5 +1,5 @@
 package_name = 'whoare'
-__version__ = '0.1.35'
+__version__ = '0.1.36'
 
 def require_update_pypi():
     import requests

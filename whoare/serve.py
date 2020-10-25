@@ -77,7 +77,7 @@ class WhoAreShare:
 
     def load_one(self, domain, torify):
         """ analyze and push one domain """
-        logger.debug(f'Domain {domain} tor:{torify}')
+        logger.info(f'Domain {domain} tor:{torify}')
 
         wa = WhoAre()
         try:
@@ -104,8 +104,6 @@ class WhoAreShare:
             print(f'ERROR parsing {response.text}')
             raise
         
-        logger.info(f" - Get {jresponse[0]['domain']}")
-        
         return jresponse[0]['domain']
     
     def post_one(self, wa):
@@ -119,12 +117,16 @@ class WhoAreShare:
         response = requests.post(self.post_url, data=final, headers=headers)
         jresponse = response.json()
         logger.debug(f' - POST {jresponse}')
-        self.analyze_changes(jresponse['cambios'])
+        self.analyze_changes(jresponse)
         return jresponse['ok']
     
-    def analyze_changes(self, cambios):   
+    def analyze_changes(self, response):
+        cambios = response['cambios']   
         if cambios == []:
-            self.sin_cambios += 1
+            if response['created']:
+                self.nuevos += 1
+            else:
+                self.sin_cambios += 1  
         elif 'estado' in [c['campo'] for c in cambios]:
             for cambio in cambios:
                 if cambio['campo'] == 'estado':
