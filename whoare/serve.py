@@ -2,6 +2,7 @@
 Iterate over priority domains and send data to server
 """
 import argparse
+from datetime import datetime
 import json
 import logging
 from time import sleep
@@ -27,7 +28,10 @@ class WhoAreShare:
         self.caidos = 0
         self.nuevos = 0
         self.renovados = 0
+        self.otros_cambios = 0
         self.errores = 0
+
+        self.processed = []  # skip duplicates
 
     def run(self):
         """ get domains and _whois_ them """
@@ -44,12 +48,13 @@ class WhoAreShare:
             domain = self.get_one()
             self.load_one(domain, torify=False)
 
+            sleep(self.pause_between_calls / 2)
             # if torify start a second queue
             if self.torify:
                 domain = self.get_one()
                 self.load_one(domain, torify=True)
             
-            sleep(self.pause_between_calls)
+            sleep(self.pause_between_calls / 2)
     
     def run_from_path(self, path):
         """ open a file and update those domains """
@@ -65,19 +70,25 @@ class WhoAreShare:
             domain = domain_list[c]
             self.load_one(domain, torify=False)
 
+            sleep(self.pause_between_calls / 2)
             if self.torify:
                 c += 1
                 if c >= len(domain_list): break
                 domain = domain_list[c]
                 self.load_one(domain, torify=True)
             
-            sleep(self.pause_between_calls)
+            sleep(self.pause_between_calls / 2)
             c += 1
             if c >= len(domain_list): break
 
     def load_one(self, domain, torify):
         """ analyze and push one domain """
         logger.info(f'Domain {domain} tor:{torify}')
+
+        if domain in self.processed:
+            logger.error(f'Duplicated domain {domain}. Skipping')
+            return
+        self.processed.append(domain)
 
         wa = WhoAre()
         try:
@@ -94,7 +105,8 @@ class WhoAreShare:
         headers = {'Authorization': f'Token {self.token}'}
         # if I ask 2, I get the same (?)
         # didn't worked data = {'order': str(self.total_analizados)}
-        response = requests.get(self.get_domains_url, headers=headers)
+        data = {'t': datetime.now().timestamp()}
+        response = requests.get(self.get_domains_url, data=data, headers=headers)
         if response.status_code != 200:
             raise ValueError(f'Error GET status {response.status_code}: {response.text}')
         
@@ -104,6 +116,8 @@ class WhoAreShare:
             print(f'ERROR parsing {response.text}')
             raise
         
+        logger.info(f" - Got {jresponse[0]['estado']} reader {jresponse[0]['data_readed']} registered {jresponse[0]['registered']} expire {jresponse[0]['expire']} priority {jresponse[0]['priority_to_update']}")
+
         return jresponse[0]['domain']
     
     def post_one(self, wa):
@@ -136,10 +150,12 @@ class WhoAreShare:
                         self.caidos += 1
         elif 'dominio_expire' in [c['campo'] for c in cambios]:
             self.renovados += 1
+        else:
+            self.otros_cambios += 1
 
         self.total_analizados += 1
         
-        logger.info(f'STATUS [{self.total_analizados}]{self.errores} renovados:{self.renovados} caidos:{self.caidos} sin cambios:{self.sin_cambios} nuevos:{self.nuevos}')
+        logger.info(f'STATUS [{self.total_analizados}]{self.errores} renovados:{self.renovados} caidos:{self.caidos} sin cambios:{self.sin_cambios} nuevos:{self.nuevos} otros:{self.otros_cambios}')
 
 
 def main():
