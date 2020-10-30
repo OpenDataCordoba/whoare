@@ -116,7 +116,7 @@ class WhoAreShare:
             print(f'ERROR parsing {response.text}')
             raise
         
-        logger.info(f" - Got {jresponse[0]['estado']} reader {jresponse[0]['data_readed']} registered {jresponse[0]['registered']} expire {jresponse[0]['expire']} priority {jresponse[0]['priority_to_update']}")
+        logger.info(f" - Got {jresponse[0]['domain']} {jresponse[0]['estado']} readed {jresponse[0]['data_readed']} expire {jresponse[0]['expire']} priority {jresponse[0]['priority_to_update']}")
 
         return jresponse[0]['domain']
     
