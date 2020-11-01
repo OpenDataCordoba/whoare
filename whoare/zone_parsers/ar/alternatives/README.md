@@ -1,0 +1,3 @@
+# Alternatives
+
+Not only `whois`.  

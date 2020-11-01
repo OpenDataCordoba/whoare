@@ -1,8 +1,14 @@
 # RDAP protocol
 
-TODO
-RDAP for NIC.ar: https://rdap.nic.ar/
+RDAP is defined here: https://tools.ietf.org/html/rfc7483  
+RDAP for NIC.ar: https://rdap.nic.ar/  
 
-Samples:
+## Samples
+
+### Domain
+
 https://rdap.nic.ar/domain/cordoba.com.ar
+
+### Registrant
+
 https://rdap.nic.ar/entity/20139521278

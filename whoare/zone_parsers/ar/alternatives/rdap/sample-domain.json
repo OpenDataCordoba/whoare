@@ -1,0 +1,91 @@
+{
+	"status": ["active"],
+	"fred_nsset": {
+		"nameservers": [{
+			"objectClassName": "nameserver",
+			"handle": "dns1.servidoraweb.net",
+			"links": [{
+				"href": "https://rdap.nic.ar/nameserver/dns1.servidoraweb.net",
+				"type": "application/rdap+json",
+				"rel": "self",
+				"value": "https://rdap.nic.ar/nameserver/dns1.servidoraweb.net"
+			}],
+			"ldhName": "dns1.servidoraweb.net"
+		}, {
+			"objectClassName": "nameserver",
+			"handle": "dns2.servidoraweb.net",
+			"links": [{
+				"href": "https://rdap.nic.ar/nameserver/dns2.servidoraweb.net",
+				"type": "application/rdap+json",
+				"rel": "self",
+				"value": "https://rdap.nic.ar/nameserver/dns2.servidoraweb.net"
+			}],
+			"ldhName": "dns2.servidoraweb.net"
+		}],
+		"objectClassName": "fred_nsset",
+		"handle": "463187",
+		"links": [{
+			"href": "https://rdap.nic.ar/fred_nsset/463187",
+			"type": "application/rdap+json",
+			"rel": "self",
+			"value": "https://rdap.nic.ar/fred_nsset/463187"
+		}]
+	},
+	"handle": "cordoba.com.ar",
+	"links": [{
+		"href": "https://rdap.nic.ar/domain/cordoba.com.ar",
+		"type": "application/rdap+json",
+		"rel": "self",
+		"value": "https://rdap.nic.ar/domain/cordoba.com.ar"
+	}],
+	"port43": "",
+	"nameservers": [{
+		"objectClassName": "nameserver",
+		"handle": "dns1.servidoraweb.net",
+		"links": [{
+			"href": "https://rdap.nic.ar/nameserver/dns1.servidoraweb.net",
+			"type": "application/rdap+json",
+			"rel": "self",
+			"value": "https://rdap.nic.ar/nameserver/dns1.servidoraweb.net"
+		}],
+		"ldhName": "dns1.servidoraweb.net"
+	}, {
+		"objectClassName": "nameserver",
+		"handle": "dns2.servidoraweb.net",
+		"links": [{
+			"href": "https://rdap.nic.ar/nameserver/dns2.servidoraweb.net",
+			"type": "application/rdap+json",
+			"rel": "self",
+			"value": "https://rdap.nic.ar/nameserver/dns2.servidoraweb.net"
+		}],
+		"ldhName": "dns2.servidoraweb.net"
+	}],
+	"ldhName": "cordoba.com.ar",
+	"entities": [{
+		"objectClassName": "entity",
+		"handle": "20139521278",
+		"links": [{
+			"href": "https://rdap.nic.ar/entity/20139521278",
+			"type": "application/rdap+json",
+			"rel": "self",
+			"value": "https://rdap.nic.ar/entity/20139521278"
+		}],
+		"roles": ["registrant"]
+	}, {
+		"objectClassName": "entity",
+		"handle": "nicar",
+		"roles": ["registrar"]
+	}],
+	"rdapConformance": ["rdap_level_0", "fred_version_0"],
+	"objectClassName": "domain",
+	"events": [{
+		"eventAction": "registration",
+		"eventDate": "2015-09-17T00:00:00+00:00"
+	}, {
+		"eventAction": "expiration",
+		"eventDate": "2021-04-17T09:00:00+00:00"
+	}, {
+		"eventAction": "last changed",
+		"eventDate": "2018-03-21T09:00:31+00:00"
+	}]
+}

@@ -37,6 +37,12 @@ class WhoAre:
         
         self.raw_data = raw
         return raw
+    
+    def pre_load(self, domain):
+        domain_name, zone = self.detect_zone(domain)
+        zone_class = self.detect_subclass(zone)
+        self.child = zone_class()
+        self.domain = Domain(domain_name, zone)
 
     def load(self, domain, host=None, mock_from_txt_file=None, torify=False):
         """ load domain data. 
@@ -46,15 +52,9 @@ class WhoAre:
                 mock_from_txt_file could be used to a path with exact whois results """
         
         logger.info(f'Load {domain} {host}')
-        
-        domain_name, zone = self.detect_zone(domain)
-        zone_class = self.detect_subclass(zone)
-        self.child = zone_class()
-        self.domain = Domain(domain_name, zone)
-
-        logger.info(f'Zone Class {zone_class} {domain_name} {zone}')
-        
-        domain = f'{domain_name}.{zone}'
+        self.pre_load(domain)        
+        logger.info(f'Zone Class {self.child.__class__} {self.domain.base_name} {self.domain.zone}')
+        domain = f'{self.domain.base_name}.{self.domain.zone}'
 
         if mock_from_txt_file is not None:
             f = open(mock_from_txt_file)
@@ -64,6 +64,17 @@ class WhoAre:
             raw = self.get_raw(domain, host, torify)
             
         return self.load_from_raw(raw)
+
+    def get_alternatives(self, domain):
+        """ get alternative methods from a zone """
+        self.pre_load(domain)
+        return self.child.alternatives()
+
+    def load_from_alternative(self, domain, alternative):
+        """ get the data not from whois but for an alternative method
+            alternative: an alternative class to get domain data """
+
+        alternative.parse(parent=self)
 
     def load_from_raw(self, raw):
 
@@ -98,7 +109,7 @@ class WhoAre:
         logger.info(f'Detecting subclass for {zone} at {subclasses}')
         
         for cls in subclasses:
-            logger.info(f'Searching zones for {cls} {cls.zones()}')
+            logger.debug(f'Searching zones for {cls} {cls.zones()}')
             if zone in cls.zones():
                 return cls
 

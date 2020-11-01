@@ -5,6 +5,7 @@ from whoare.exceptions import (TooManyQueriesError, ServiceUnavailableError,
                                UnknownError, UnexpectedParseError,
                                UnexpectedDomainError)
 
+from whoare.zone_parsers.ar.alternatives.rdap.base import ArNicRdap
 
 logger = logging.getLogger(__name__)
 tz = pytz.timezone('America/Argentina/Cordoba')
@@ -15,6 +16,10 @@ class WhoAr:
     @classmethod
     def zones(cls):
         return ['ar', 'com.ar', 'gob.ar', 'gov.ar', 'int.ar', 'mil.ar', 'org.ar', 'tur.ar', 'net.ar']
+
+    @classmethod
+    def alternatives(cls):
+        return [ArNicRdap]
 
     def is_free(self, raw):
         """ determine if domain is free """
