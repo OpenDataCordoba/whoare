@@ -129,6 +129,5 @@ dmypy.json
 .pyre/
 new.ar.txt
 
-whoare/zone_parsers/ar/data/*.pdf
-whoare/zone_parsers/ar/data/*.txt
+whoare/zone_parsers/ar/data/
 .vscode/
