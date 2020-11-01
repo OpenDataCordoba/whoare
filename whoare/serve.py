@@ -135,9 +135,13 @@ class WhoAreShare:
         return jresponse['ok']
     
     def analyze_changes(self, response):
-        cambios = response['cambios']   
+        if not response['ok']:
+            self.errores += 1
+            return
+            
+        cambios = response.get('cambios', [])   
         if cambios == []:
-            if response['created']:
+            if response.get('created', False):
                 self.nuevos += 1
             else:
                 self.sin_cambios += 1  
