@@ -135,6 +135,8 @@ class NewDomains:
         file_name = pdf_path.split('/')[-1]
         last_error_code = file_name
         c = 0
+        last_df = None
+        
         for dom in df:
             c += 1
             if len(dom.values) > 0:
@@ -156,7 +158,9 @@ class NewDomains:
                                 last_zona = zona
                                 valid_zone = True
                             else:
-                                logger.error(f'Changed ZONE expected! \n\t{last_df.index}\n\t{last_df.columns}\n\t{last_any_df.index}\n\t{last_any_df.columns}\n\t{last_any_df.values}\n\t{dom.index}\n\t{dom.columns}')
+                                ix = '' if last_df is None else last_df.index
+                                cl = '' if last_df is None else last_df.columns
+                                logger.error(f'Changed ZONE expected! \n\t{ix}\n\t{cl}\n\t{last_any_df.index}\n\t{last_any_df.columns}\n\t{last_any_df.values}\n\t{dom.index}\n\t{dom.columns}')
                                 logger.error(f'Changed to {dom_name}.{zona}')
                                 # skip all not-sure domains
                                 valid_zone = False
