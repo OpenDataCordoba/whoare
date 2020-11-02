@@ -116,9 +116,10 @@ class WhoAreShare:
             print(f'ERROR parsing {response.text}')
             raise
         
-        logger.info(f" - Got {jresponse[0]['domain']} {jresponse[0]['estado']} readed {jresponse[0]['data_readed']} expire {jresponse[0]['expire']} priority {jresponse[0]['priority_to_update']}")
+        dom = jresponse[0]
+        logger.info(f" - Got {dom['domain']} {dom.get('estado', '')} readed {dom.get('data_readed', '')} expire {dom.get('expire', '')} priority {dom.get('priority_to_update', '-')}")
 
-        return jresponse[0]['domain']
+        return dom['domain']
     
     def post_one(self, wa):
         """ post results to server """
