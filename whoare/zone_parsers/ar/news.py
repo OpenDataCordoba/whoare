@@ -136,6 +136,7 @@ class NewDomains:
         last_error_code = file_name
         c = 0
         last_df = None
+        last_any_df = None
         
         for dom in df:
             c += 1
@@ -160,7 +161,10 @@ class NewDomains:
                             else:
                                 ix = '' if last_df is None else last_df.index
                                 cl = '' if last_df is None else last_df.columns
-                                logger.error(f'Changed ZONE expected! \n\t{ix}\n\t{cl}\n\t{last_any_df.index}\n\t{last_any_df.columns}\n\t{last_any_df.values}\n\t{dom.index}\n\t{dom.columns}')
+                                ix2 = '' if last_any_df is None else last_df.index
+                                cl2 = '' if last_any_df is None else last_df.columns
+                                v2 = '[]' if last_any_df is None else last_df.values
+                                logger.error(f'Changed ZONE expected! \n\t{ix}\n\t{cl}\n\t{ix2}\n\t{cl2}\n\t{v2}\n\t{dom.index}\n\t{dom.columns}')
                                 logger.error(f'Changed to {dom_name}.{zona}')
                                 # skip all not-sure domains
                                 valid_zone = False
