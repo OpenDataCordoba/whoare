@@ -51,11 +51,5 @@ nd = NewDomains()
 nd.data_path = ''  # here
 results = nd.get_from_date('03-12-2019')
 
-print(results[10])
-{'url': '3devo.ar', 'error': None, 'dominio_base': '3devo', 'zona': 'ar'}
-print(results[1000])
-{'url': 'pinturasacasa.ar', 'error': None, 'dominio_base': 'pinturasacasa', 'zona': 'ar'}
-print(results[1500])
-{'url': 'ofamachines.org.ar', 'error': None, 'dominio_base': 'ofamachines', 'zona': 'org.ar'}
 
 ```

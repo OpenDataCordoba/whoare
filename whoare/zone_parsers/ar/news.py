@@ -128,7 +128,7 @@ class NewDomains:
         valid_zones = WhoAr.zones()
 
         results = {'zonas': {}, 'errors': {}}
-        last_dominio = ''
+        last_dominio = 'zzzzz'
         last_zona = ''
         zona = ''
         valid_zone = False
@@ -164,8 +164,8 @@ class NewDomains:
                                 ix2 = '' if last_any_df is None else last_df.index
                                 cl2 = '' if last_any_df is None else last_df.columns
                                 v2 = '[]' if last_any_df is None else last_df.values
+                                logger.error(f'NO CHNGED ZONE "{last_dominio} > {url}" AND "{last_zona} != {zona}"')
                                 logger.error(f'Changed ZONE expected! \n\t{ix}\n\t{cl}\n\t{ix2}\n\t{cl2}\n\t{v2}\n\t{dom.index}\n\t{dom.columns}')
-                                logger.error(f'Changed to {dom_name}.{zona}')
                                 # skip all not-sure domains
                                 valid_zone = False
                                 last_error_code = f'error-{c}-{zona}-{file_name}'
@@ -174,21 +174,23 @@ class NewDomains:
                             if zona not in results['zonas']:
                                 results['zonas'][zona] = []
                             results['zonas'][zona].append(url)
+                            logger.info(f'DOMAIN FOUND {url}')
                         else:
                             if last_error_code not in results['errors']:
                                 results['errors'][last_error_code] = []
                             results['errors'][last_error_code].append(url)
+                            logger.info(f'BAD DOMAIN {url} \n\t"{last_zona} != {zona}"\n\t"{last_dominio} > {url}"')
                         
                         last_dominio = url
-                    # else:
-                    #     logger.error(f'Bad line2! \n\t{dom.index}\n\t{dom.columns}\n\t{dom.values}')
+                    else:
+                        logger.error(f'Bad line! \n\t{zona}\n\t{dom.index}\n\t{dom.columns}\n\t{dom.values}')
                         
             skip = ['Unnamed', 'Boletín Oficial', 'NOMBRE DEL DOMINIO', 'Transferencias', 'Altas']
             ok = True
             for s in skip:
                 if s in dom.columns[0]:
                     ok = False
-                    logger.debug(f'SKIP ZONE {dom.columns[0]}')
+                    logger.info(f'SKIP ZONE \n\t{dom.index}\n\t{dom.columns}\n\t{dom.values}')
             
             last_any_df = dom
 
