@@ -22,8 +22,12 @@ class NewDomains:
 
     def get_from_date_range(self, 
                             from_date=date.today() - timedelta(days=400),
-                            to_date=date.today()):
-        """ download and process last ~year """
+                            to_date=date.today(),
+                            push_url=None,
+                            api_key=None):
+        """ download and process last ~year 
+            If push_url and api_key exists we send push domains"""
+
         dia = from_date
         full_results = {}
 
@@ -63,9 +67,24 @@ class NewDomains:
             f = open(f'{zona}.txt', 'w')
             for dom in lista:
                 f.write(f'{dom}\n')
+
+                if push_url is not None:
+                    self.push_domain(dom, push_url, api_key)
+        
             f.close()
 
         return full_results
+
+    def push_domain(self, domain, push_url, api_key):
+        """ push domain to external server """
+
+        headers = {'Authorization': f'Token {api_key}'}
+        data = {'dominio': domain}
+        logger.info(f'Push new domain {domain} to {push_url}')
+        response = requests.post(url=push_url, data=data, headers=headers)
+        jresponse = response.json()
+        logger.info(f' - Response [{response.status_code}]: {jresponse}')
+        return response
         
     def get_from_date(self, date):
         """ Download specific date PDF and process it.
@@ -139,13 +158,14 @@ class NewDomains:
         last_any_df = None
         
         for dom in df:
+            logger.info(f'\n************\nDF\n************\n\t{dom.index}\n\t{dom.columns}\n\t{dom.values}\n**************')
             c += 1
             if len(dom.values) > 0:
                 for dominio in dom.values:
                     if type(dominio[0]) == float:
                         if len(dominio) == 1 or type(dominio[1]) == float:
-                            # logger.error(f'Bad line! \n\t{dom.index}\n\t{dom.columns}\n\t{dom.values}')
-                            continue  # (?)
+                            logger.error(f'Bad NAN line! \n\t{dom.index}\n\t{dom.columns}\n\t{dom.values}')
+                            
                         else:
                             dom_name = dominio[1]
                     else:
@@ -165,7 +185,7 @@ class NewDomains:
                                 cl2 = '' if last_any_df is None else last_df.columns
                                 v2 = '[]' if last_any_df is None else last_df.values
                                 logger.error(f'NO CHNGED ZONE "{last_dominio} > {url}" AND "{last_zona} != {zona}"')
-                                logger.error(f'Changed ZONE expected! \n\t{ix}\n\t{cl}\n\t{ix2}\n\t{cl2}\n\t{v2}\n\t{dom.index}\n\t{dom.columns}')
+                                # logger.error(f'Changed ZONE expected! \n\t{ix}\n\t{cl}\n\t{ix2}\n\t{cl2}\n\t{v2}\n\t{dom.index}\n\t{dom.columns}')
                                 # skip all not-sure domains
                                 valid_zone = False
                                 last_error_code = f'error-{c}-{zona}-{file_name}'
@@ -190,7 +210,7 @@ class NewDomains:
             for s in skip:
                 if s in dom.columns[0]:
                     ok = False
-                    logger.info(f'SKIP ZONE \n\t{dom.index}\n\t{dom.columns}\n\t{dom.values}')
+                    logger.info(f'SKIP ZONE {dom.columns[0]}')  # \n\t{dom.index}\n\t{dom.columns}\n\t{dom.values}')
             
             last_any_df = dom
 
@@ -207,7 +227,7 @@ class NewDomains:
                     logger.error(f'BAD ZONE {new_zone}')
                 else:
                     zona = new_zone
-                    logger.info(f'Zona FOUND: {zona} at {dom.columns}\n\t{dom.index}')
+                    logger.info(f'Zona FOUND: {zona}')  # ' at {dom.columns}\n\t{dom.index}')
 
                 last_df = dom
 
