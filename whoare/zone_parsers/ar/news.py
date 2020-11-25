@@ -21,7 +21,7 @@ class NewDomains:
         self.data_path = 'whoare/zone_parsers/ar/data'
 
     def get_from_date_range(self, 
-                            from_date=date.today() - timedelta(days=400),
+                            from_date=date.today() - timedelta(days=3),
                             to_date=date.today(),
                             push_url=None,
                             api_key=None):
@@ -63,17 +63,15 @@ class NewDomains:
                     if dom not in full_results[zona]:
                         full_results[zona].append(dom)
 
+        final = []
         for zona, lista in full_results.items():
             f = open(f'{zona}.txt', 'w')
             for dom in lista:
                 f.write(f'{dom}\n')
-
-                if push_url is not None:
-                    self.push_domain(dom, push_url, api_key)
-        
+                final.append(dom)
             f.close()
 
-        return full_results
+        return final
 
     def push_domain(self, domain, push_url, api_key):
         """ push domain to external server """
