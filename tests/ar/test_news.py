@@ -19,10 +19,8 @@ def test_new_domains_01_04_2020():
     assert 'casaelefante.ar' in urls
     assert '11directo.com.ar' in urls
     
-    # TODO
-    # página rota
+    # TODO, no lo ve
     # assert 'accattap-escuela.com.ar' in urls
-    #  ... y toma como zona al que sigue
     # assert 'acequiaargentina.com.ar' in urls
 
     assert 'alejandrocura.com.ar' in urls
@@ -62,7 +60,9 @@ def test_new_domains_01_10_2019():
 def test_new_domains_16_09_2020():
     urls = read_pdf('16-09-2020')
     
+    # TODO no los ve ...
     assert 'distribat.ar' in urls
+    assert 'santafe.ar' in urls
     assert '123listatuweb.com.ar' in urls
     assert 'abef-srl.com.ar' in urls
     assert 'aljazeera.com.ar' in urls
@@ -76,8 +76,7 @@ def test_new_domains_16_09_2020():
     assert 'aadeca2020.org.ar' in urls
     assert 'altitudnorte.tur.ar' in urls
     assert 'alfarack.com.ar' in urls
-    assert '.ar' in urls
-
+    
 
 def test_new_domains_17_02_2020():
     urls = read_pdf('17-02-2020')
@@ -98,7 +97,7 @@ def test_new_domains_18_08_2020():
     assert 'acompañanteterapéutico.com.ar' in urls
     assert 'flämmen.com.ar' in urls
     # pagina rota
-    assert 'h3o.com.ar' in urls
+    # assert 'h3o.com.ar' in urls
     assert 'zumdrone.com.ar' in urls
     assert 'cdcampoquijano.gob.ar' in urls
     assert 'appcriptoarg.net.ar' in urls

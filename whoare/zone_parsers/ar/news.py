@@ -141,7 +141,7 @@ class NewDomains:
 
     def read_pdf(self, pdf_path):
         # Read pdf into list of DataFrame
-        df = tabula.read_pdf(pdf_path, pages='all')
+        df = tabula.read_pdf(pdf_path, pages='all', lattice=True)
         valid_zones = WhoAr.zones()
 
         results = {'zonas': {}, 'errors': {}}
@@ -156,14 +156,14 @@ class NewDomains:
         last_any_df = None
         
         for dom in df:
-            logger.info(f'\n************\nDF\n************\n\t{dom.index}\n\t{dom.columns}\n\t{dom.values}\n**************')
+            logger.debug(f'\n************\nDF\t{dom.index}| {dom.columns} | {dom.values}\n**************')
             c += 1
             if len(dom.values) > 0:
                 for dominio in dom.values:
                     if type(dominio[0]) == float:
                         if len(dominio) == 1 or type(dominio[1]) == float:
                             logger.error(f'Bad NAN line! \n\t{dom.index}\n\t{dom.columns}\n\t{dom.values}')
-                            
+                            dom_name = ''
                         else:
                             dom_name = dominio[1]
                     else:
