@@ -26,7 +26,7 @@ class WhoAreNews:
         nd = NewDomains()
 
         fromd = date.today() - timedelta(days=days_ago)
-        dominios = nd.get_from_date_range(from_date=fromd, push_url=self.push_url, api_key=self.token)
+        dominios = nd.get_from_date_range(from_date=fromd)
 
         for dominio in dominios:
             logger.info(f' {self.nuevos}+{self.ya_existian}={self.total_analizados}/{len(dominios)} Before push {dominio}')
