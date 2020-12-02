@@ -174,7 +174,7 @@ def main():
     parser.add_argument('--get', nargs='?', help='URL to get domains from', type=str, default=default_get)
     parser.add_argument('--post', nargs='?', help='URL to post results to', type=str, default=default_post)
     parser.add_argument('--token', nargs='?', help='Token to use as Header Autorization', type=str, required=True)
-    parser.add_argument('--torify', nargs='?', type=bool, default=True, help='Use torify for WhoIs command')
+    parser.add_argument('--torify', nargs='?', type=bool, default=False, help='Use torify for WhoIs command')
     parser.add_argument('--pause', nargs='?', help='Pause between calls', default=41, type=int)
     parser.add_argument('--from_path', nargs='?', help='If not used we will get priorities from API. This is usted for new-domain lists', type=str)
     parser.add_argument('--log_level', nargs='?', default='INFO', type=str)
