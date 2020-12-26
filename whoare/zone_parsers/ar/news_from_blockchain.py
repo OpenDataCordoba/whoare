@@ -101,7 +101,8 @@ class NewDomains:
         if rgx is not None:
             return rgx.group('csvid')
         
-        raise Exception(f'CSVID not found for {dated}')
+        logger.error(f'CSVID not found for {dated}')
+        return None
 
     def get_from_date(self, dated):
         """ Download specific date PDF and process it.
@@ -127,21 +128,24 @@ class NewDomains:
 
         if os.path.isfile(path):
             logger.info(f'Skip download. File already exists {dated} {path}')
-            return
+            return True
 
         headers = {"User-Agent": self.ua}
         csvid = self.date_to_csvid(dated)
+        if csvid is None:
+            # el 29/3/2019 por ejemplo no existe (?)
+            return None
+
         url = f'{self.base_domain}/{csvid}/csv'
         try:
             response = requests.get(url, headers=headers)
         except:
             logger.error('Error GET from blockchain CSV')
-            return {'zonas': {}, 'errors': {}}
+            return None
 
         if response.status_code >= 400 or response.content is None or response.text == '':
-            logger.error(f'Error GET {url} from blockchain CSV {response.status_code}')
-            return {'zonas': {}, 'errors': {}}
-
+            logger.error(f'Error getting {url} from blockchain CSV {response.status_code}')
+            return None
     
         f = open(path, 'wb')
         f.write(response.content)
@@ -153,7 +157,10 @@ class NewDomains:
     def read_csv(self, csv_path):
         logger.info(f'Reading CSV {csv_path}')
         results = {'zonas': {}, 'errors': {}}
-        
+
+        if not os.path.isfile(csv_path):
+            return results
+                
         f = open(csv_path)
         reader = csv.DictReader(f)
         # tipo	dominio	zona	id_dominio	titular	numero_doc	tipo_doc	fecha_registro
