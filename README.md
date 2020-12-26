@@ -46,10 +46,28 @@ wa.dnss[1].name
 ### Argentina
 
 ```python
-from whoare.zone_parsers.ar.news import NewDomains
+from datetime import date
+from whoare.zone_parsers.ar.news_from_blockchain import NewDomains
 nd = NewDomains()
 nd.data_path = ''  # here
-results = nd.get_from_date('03-12-2019')
+results = nd.get_from_date(date(2020, 3, 28))
 
+{
+    'zonas': {
+        'com.ar': [
+            '3cconstrucciones.com.ar',
+            '4kids.com.ar'
+            ],
+        'ar': [
+            'andamios.ar',
+            'apuesta.ar',
+            'camaras.ar'
+            ],
+        'tur.ar': [
+            'villacarlospaz.tur.ar'
+            ]
+        },
+    'errors': {}
+}
 
 ```
