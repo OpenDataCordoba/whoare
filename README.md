@@ -1,4 +1,4 @@
-[![Travis (.org)](https://img.shields.io/travis/avdata99/whoare?style=for-the-badge)](https://travis-ci.org/github/avdata99/whoare)
+![Lint and test](https://github.com/avdata99/whoare/workflows/Lint%20and%20test/badge.svg?branch=main)
 [![GitHub All Releases](https://img.shields.io/github/downloads/avdata99/whoare/total?style=for-the-badge)](https://github.com/avdata99/whoare/releases)
 [![GitHub Issues](https://img.shields.io/github/issues/avdata99/whoare?style=for-the-badge)](https://github.com/avdata99/whoare/issues)
 [![GitHub PR](https://img.shields.io/github/issues-pr/avdata99/whoare?style=for-the-badge)](https://github.com/avdata99/whoare/pulls)
