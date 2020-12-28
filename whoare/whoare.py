@@ -1,7 +1,10 @@
 from datetime import datetime
+import json
 import logging
+import requests
 import subprocess
 
+from whoare import __version__
 from whoare.base import Domain, subclasses, Registrant, DNS
 from whoare.exceptions import ZoneNotFoundError, WhoIsCommandError
 
@@ -239,3 +242,16 @@ class WhoAre:
                 self.dnss.append(DNS(name=data[f"dns{c}"]))
             else:
                 break
+    
+    def push(self, token, post_url='https://nic.opendatacordoba.org/api/v1/dominios/dominio/update_from_whoare/'):
+        """ post results to server """
+        headers = {'Authorization': f'Token {token}'}
+        data = self.as_dict()
+        data['whoare_version'] = __version__
+        logger.debug(f'POSTing {data}')
+        str_data = json.dumps(data)
+        final = {'domain': str_data}
+        response = requests.post(post_url, data=final, headers=headers)
+        jresponse = response.json()
+        logger.debug(f' - POST {jresponse}')
+        return jresponse

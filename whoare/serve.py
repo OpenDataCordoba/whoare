@@ -123,15 +123,7 @@ class WhoAreShare:
     
     def post_one(self, wa):
         """ post results to server """
-        headers = {'Authorization': f'Token {self.token}'}
-        data = wa.as_dict()
-        data['whoare_version'] = __version__
-        logger.debug(f'POSTing {data}')
-        str_data = json.dumps(data)
-        final = {'domain': str_data}
-        response = requests.post(self.post_url, data=final, headers=headers)
-        jresponse = response.json()
-        logger.debug(f' - POST {jresponse}')
+        jresponse = wa.push(token=self.token, post_url=self.post_url)
         self.analyze_changes(jresponse)
         return jresponse['ok']
     
@@ -177,6 +169,7 @@ def main():
     parser.add_argument('--torify', nargs='?', type=bool, default=False, help='Use torify for WhoIs command')
     parser.add_argument('--pause', nargs='?', help='Pause between calls', default=41, type=int)
     parser.add_argument('--from_path', nargs='?', help='If not used we will get priorities from API. This is usted for new-domain lists', type=str)
+    parser.add_argument('--one_domain', nargs='?', help='Just update one domain', type=str)
     parser.add_argument('--log_level', nargs='?', default='INFO', type=str)
     
     args = parser.parse_args()
@@ -203,4 +196,7 @@ def main():
         from_path=args.from_path
     )
 
-    was.run()
+    if args.one_domain is not None:
+        was.load_one(domain=args.one_domain, torify=False)
+    else:
+        was.run()
