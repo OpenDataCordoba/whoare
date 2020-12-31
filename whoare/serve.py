@@ -46,12 +46,18 @@ class WhoAreShare:
         while True:
             
             domain = self.get_one()
+            if domain is None:
+                sleep(self.pause_between_calls)
+                continue
             self.load_one(domain, torify=False)
 
             sleep(self.pause_between_calls / 2)
             # if torify start a second queue
             if self.torify:
                 domain = self.get_one()
+                if domain is None:
+                    sleep(self.pause_between_calls)
+                    continue
                 self.load_one(domain, torify=True)
             
             sleep(self.pause_between_calls / 2)
@@ -84,6 +90,7 @@ class WhoAreShare:
     def load_one(self, domain, torify):
         """ analyze and push one domain """
         logger.info(f'Domain {domain} tor:{torify}')
+        self.total_analizados += 1
 
         if domain in self.processed:
             logger.error(f'Duplicated domain {domain}. Skipping')
@@ -108,13 +115,13 @@ class WhoAreShare:
         data = {'t': datetime.now().timestamp()}
         response = requests.get(self.get_domains_url, data=data, headers=headers)
         if response.status_code != 200:
-            raise ValueError(f'Error GET status {response.status_code}: {response.text}')
-        
+            logger.error(f'Error GET status {response.status_code}: {response.text}')
+            return None
         try:
             jresponse = response.json()
         except Exception:
-            print(f'ERROR parsing {response.text}')
-            raise
+            logger.error(f'ERROR parsing {response.text}')
+            return None
         
         dom = jresponse['results'][0]
         logger.info(f" - Got {dom['domain']} {dom.get('estado', '')} readed {dom.get('data_readed', '')} expire {dom.get('expire', '')} priority {dom.get('priority_to_update', '-')}")
@@ -129,6 +136,7 @@ class WhoAreShare:
     
     def analyze_changes(self, response):
         if not response['ok']:
+            logger.error(f'Error in response: {response.get("error", "Unknown")}')
             self.errores += 1
             return
             
@@ -149,8 +157,6 @@ class WhoAreShare:
             self.renovados += 1
         else:
             self.otros_cambios += 1
-
-        self.total_analizados += 1
         
         logger.info(f'STATUS [{self.total_analizados}]{self.errores} renovados:{self.renovados} caidos:{self.caidos} sin cambios:{self.sin_cambios} nuevos:{self.nuevos} otros:{self.otros_cambios}')
 
