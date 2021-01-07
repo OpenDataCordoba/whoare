@@ -2,7 +2,9 @@ from datetime import datetime
 import json
 import logging
 import requests
+import socket
 import subprocess
+import sys
 
 from whoare import __version__
 from whoare.base import Domain, subclasses, Registrant, DNS
@@ -40,11 +42,33 @@ class WhoAre:
         
         self.raw_data = raw
         return raw
+    
+    def get_raw_from_43(self, domain, host='whois.nic.ar'):
+        
 
-    def load(self, domain, host=None, mock_from_txt_file=None, torify=False):
+        #socket connection
+        s = socket.socket(socket.AF_INET , socket.SOCK_STREAM)
+        s.connect((host , 43))
+
+        query = f"{domain}\r\n".encode('utf-8')
+        s.send(query)
+    
+        #receive reply
+        msg = b''
+        while len(msg) < 10000:
+            chunk = s.recv(100)
+            if(chunk == b''):
+                break
+            msg = msg + chunk
+        
+        return msg.decode('utf-8')
+
+
+    def load(self, domain, host=None, mock_from_txt_file=None, torify=False, method='normal'):
         """ load domain data. 
                 domain is DOMAIN.ZONE (never use subdomain like www or others)
                 host could be "whois.nic.ar" of argentina (optional) 
+                method is "normal" | "43" (43: connect direct to port 43 using the "host")
             Return a dict with parsed data and fill class properties 
                 mock_from_txt_file could be used to a path with exact whois results """
         
@@ -64,7 +88,12 @@ class WhoAre:
             raw = f.read()
             f.close()
         else:
-            raw = self.get_raw(domain, host, torify)
+            if method == '43':
+                if host is None:
+                    raise Exception('Missing host to use 43')
+                raw = self.get_raw_from_43(domain, host)
+            else:
+                raw = self.get_raw(domain, host, torify)
             
         return self.load_from_raw(raw)
 

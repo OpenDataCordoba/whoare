@@ -100,6 +100,7 @@ class WhoAreShare:
         wa = WhoAre()
         try:
             wa.load(domain, torify=torify)
+            logger.info('REG: {}'.format(wa.registrant))
         except Exception as e:
             logger.error(f'Whois ERROR {e}')
             self.errores += 1
