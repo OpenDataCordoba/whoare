@@ -114,7 +114,13 @@ class WhoAreShare:
         # if I ask 2, I get the same (?)
         # didn't worked data = {'order': str(self.total_analizados)}
         data = {'t': datetime.now().timestamp()}
-        response = requests.get(self.get_domains_url, data=data, headers=headers)
+
+        try:
+            response = requests.get(self.get_domains_url, data=data, headers=headers)
+        except Exception as e:
+            logger.error(f'Error get_one rquest: {e}')
+            return None
+
         if response.status_code != 200:
             logger.error(f'Error GET status {response.status_code}: {response.text}')
             return None
@@ -124,19 +130,33 @@ class WhoAreShare:
             logger.error(f'ERROR parsing {response.text}')
             return None
         
-        dom = jresponse['results'][0]
-        logger.info(f" - Got {dom['domain']} {dom.get('estado', '')} readed {dom.get('data_readed', '')} expire {dom.get('expire', '')} priority {dom.get('priority_to_update', '-')}")
+        response = jresponse.get('results', [])
+        if len(response) == 0:
+            logger.error(' *** ERROR: GETONE NO RESULTS ***')
+            return None
 
-        return dom['domain']
+        dom = response[0]
+        domain = dom.get('domain', None)
+        if domain is None:
+            logger.error(' *** ERROR: GETONE NO DOMAIN ***')
+            return None
+        
+        logger.info(f" - Got {domain} {dom.get('estado', '')} readed {dom.get('data_readed', '')} expire {dom.get('expire', '')}")
+        return domain
     
     def post_one(self, wa):
         """ post results to server """
-        jresponse = wa.push(token=self.token, post_url=self.post_url)
+        try:
+            jresponse = wa.push(token=self.token, post_url=self.post_url)
+        except Exception as e:
+            logger.error(f'Error post_one request: {e}')
+            return None
+
         self.analyze_changes(jresponse)
-        return jresponse['ok']
+        return jresponse.get('ok', False)
     
     def analyze_changes(self, response):
-        if not response['ok']:
+        if not response.get('ok', False):
             logger.error(f'Error in response: {response.get("error", "Unknown")}')
             self.errores += 1
             return
@@ -159,7 +179,7 @@ class WhoAreShare:
         else:
             self.otros_cambios += 1
         
-        logger.info(f'STATUS [{self.total_analizados}]{self.errores} renovados:{self.renovados} caidos:{self.caidos} sin cambios:{self.sin_cambios} nuevos:{self.nuevos} otros:{self.otros_cambios}')
+        logger.info(f'[{self.total_analizados}]{self.errores} REN{self.renovados} DOWN{self.caidos} NOCH{self.sin_cambios} NEW{self.nuevos} OTR{self.otros_cambios}')
 
 
 def main():
