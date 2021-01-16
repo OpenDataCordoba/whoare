@@ -3,13 +3,12 @@ Iterate over priority domains and send data to server
 """
 import argparse
 from datetime import datetime
-import json
 import logging
 from time import sleep
 import requests
 import sys
 from whoare.whoare import WhoAre
-from whoare import __version__
+
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +43,7 @@ class WhoAreShare:
         """ get priority domains from API """
         logger.info('Start runing from priority')
         while True:
-            
+
             domain = self.get_one()
             if domain is None:
                 sleep(self.pause_between_calls)
@@ -59,9 +58,9 @@ class WhoAreShare:
                     sleep(self.pause_between_calls)
                     continue
                 self.load_one(domain, torify=True)
-            
+
             sleep(self.pause_between_calls / 2)
-    
+
     def run_from_path(self, path):
         """ open a file and update those domains """
         f = open(path)
@@ -72,20 +71,22 @@ class WhoAreShare:
 
         c = 0
         while True:
-            
+
             domain = domain_list[c]
             self.load_one(domain, torify=False)
 
             sleep(self.pause_between_calls / 2)
             if self.torify:
                 c += 1
-                if c >= len(domain_list): break
+                if c >= len(domain_list):
+                    break
                 domain = domain_list[c]
                 self.load_one(domain, torify=True)
-            
+
             sleep(self.pause_between_calls / 2)
             c += 1
-            if c >= len(domain_list): break
+            if c >= len(domain_list):
+                break
 
     def load_one(self, domain, torify):
         """ analyze and push one domain """
@@ -99,10 +100,17 @@ class WhoAreShare:
 
         wa = WhoAre()
         try:
-            wa.load(domain, torify=torify)
-            logger.info('REG: {}'.format(wa.registrant))
+            # default directo al 43 si es de argentina
+            # TODO permitir configuracion de host por dominios
+            if domain.endswith('.ar'):
+                wa.load(domain, torify=torify, method='43', host='whois.nic.ar')
+                logger.info('REG [43]: {}'.format(wa.registrant))
+            else:
+                wa.load(domain, torify=torify)
+                logger.info('REG: {}'.format(wa.registrant))
+
         except Exception as e:
-            logger.error(f'Whois ERROR {e}')
+            logger.error(f'Serve Whois ERROR {e}')
             self.errores += 1
         else:
             self.post_one(wa)
@@ -129,7 +137,7 @@ class WhoAreShare:
         except Exception:
             logger.error(f'ERROR parsing {response.text}')
             return None
-        
+
         response = jresponse.get('results', [])
         if len(response) == 0:
             logger.error(' *** ERROR: GETONE NO RESULTS ***')
@@ -140,10 +148,10 @@ class WhoAreShare:
         if domain is None:
             logger.error(' *** ERROR: GETONE NO DOMAIN ***')
             return None
-        
+
         logger.info(f" - Got {domain} {dom.get('estado', '')} readed {dom.get('data_readed', '')} expire {dom.get('expire', '')}")
         return domain
-    
+
     def post_one(self, wa):
         """ post results to server """
         try:
@@ -154,19 +162,19 @@ class WhoAreShare:
 
         self.analyze_changes(jresponse)
         return jresponse.get('ok', False)
-    
+
     def analyze_changes(self, response):
         if not response.get('ok', False):
             logger.error(f'Error in response: {response.get("error", "Unknown")}')
             self.errores += 1
             return
-            
-        cambios = response.get('cambios', [])   
+
+        cambios = response.get('cambios', [])
         if cambios == []:
             if response.get('created', False):
                 self.nuevos += 1
             else:
-                self.sin_cambios += 1  
+                self.sin_cambios += 1
         elif 'estado' in [c['campo'] for c in cambios]:
             for cambio in cambios:
                 if cambio['campo'] == 'estado':
@@ -178,7 +186,7 @@ class WhoAreShare:
             self.renovados += 1
         else:
             self.otros_cambios += 1
-        
+
         logger.info(f'[{self.total_analizados}]{self.errores} REN{self.renovados} DOWN{self.caidos} NOCH{self.sin_cambios} NEW{self.nuevos} OTR{self.otros_cambios}')
 
 
@@ -188,7 +196,7 @@ def main():
     base_domain = 'https://nic.opendatacordoba.org'
     default_get = f'{base_domain}/api/v1/dominios/next-priority/'
     default_post = f'{base_domain}/api/v1/dominios/dominio/update_from_whoare/'
-    
+
     parser = argparse.ArgumentParser(prog='whoare-share')
     parser.add_argument('--get', nargs='?', help='URL to get domains from', type=str, default=default_get)
     parser.add_argument('--post', nargs='?', help='URL to post results to', type=str, default=default_post)
@@ -198,14 +206,14 @@ def main():
     parser.add_argument('--from_path', nargs='?', help='If not used we will get priorities from API. This is usted for new-domain lists', type=str)
     parser.add_argument('--one_domain', nargs='?', help='Just update one domain', type=str)
     parser.add_argument('--log_level', nargs='?', default='INFO', type=str)
-    
+
     args = parser.parse_args()
 
     if args.log_level == 'INFO':
         log_level = logging.INFO
     elif args.log_level == 'DEBUG':
         log_level = logging.DEBUG
-    
+
     logger.setLevel(log_level)
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(log_level)

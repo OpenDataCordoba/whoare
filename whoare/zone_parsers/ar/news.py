@@ -2,18 +2,16 @@
 import base64
 from datetime import timedelta, date
 import logging
-import numpy as np
 import os
 import requests
 import tabula
-from time import sleep
 
 from whoare.zone_parsers.ar.who import WhoAr
 logger = logging.getLogger(__name__)
 
 
 class NewDomains:
-    """ Lee el nuevo formato de PDF implementado por el Boletìn Oficial desde el 
+    """ Lee el nuevo formato de PDF implementado por el Boletìn Oficial desde el
         28/8/2019: https://nic.opendatacordoba.org/static/28-08-2019.pdf
     """
     def __init__(self, ua="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36"):
@@ -23,12 +21,12 @@ class NewDomains:
         self.ua = ua
         self.data_path = 'whoare/zone_parsers/ar/data'
 
-    def get_from_date_range(self, 
+    def get_from_date_range(self,
                             from_date=date.today() - timedelta(days=3),
                             to_date=date.today(),
                             push_url=None,
                             api_key=None):
-        """ download and process last ~year 
+        """ download and process last ~year
             If push_url and api_key exists we send push domains"""
 
         dia = from_date
@@ -41,7 +39,7 @@ class NewDomains:
             if dia.weekday() in [6, 7]:
                 # skip weekends
                 continue
-            
+
             logger.info(f'Downloading {dia}')
             try:
                 results = self.get_from_date(date=dia.strftime('%d-%m-%Y'))
@@ -50,7 +48,7 @@ class NewDomains:
                 raise
 
             logger.error(f"===============\n{dia.strftime('%d-%m-%Y')} {c} {errors}")
-        
+
             # grabar cada lista de errores en un archivo
             for code, lista in results['errors'].items():
                 f = open(f'{code}.txt', 'w')
@@ -86,7 +84,7 @@ class NewDomains:
         jresponse = response.json()
         logger.info(f' - Response [{response.status_code}]: {jresponse}')
         return response
-        
+
     def get_from_date(self, date):
         """ Download specific date PDF and process it.
             sample date: 08-10-2019 DD-MM-YYYY
@@ -95,7 +93,7 @@ class NewDomains:
         final_pdf = os.path.join(self.data_path, f'{date}.pdf')
 
         if not os.path.isfile(final_pdf):
-            
+
             # go inside home
             self.session.headers.update({"User-Agent": self.ua})
             try:
@@ -104,10 +102,10 @@ class NewDomains:
                 internal_ajax_url = f'{self.base_domain}/edicion/actualizar/{date}'
                 self.session.get(internal_ajax_url)
                 home2_response = self.session.get(f'{self.base_domain}/{self.home}')
-            except:
+            except Exception:
                 logger.error('Error GET from BOE')
                 return {'zonas': {}, 'errors': {}}
-                
+
             if f"var fechaSeleccionada = '{date}';" not in home2_response.text:
                 logger.error('Expected JS not foud')
                 return {'zonas': {}, 'errors': {}}
@@ -115,13 +113,13 @@ class NewDomains:
             ret = self.download_pdf(date=date, path=final_pdf)
             if ret is None:
                 return {'zonas': {}, 'errors': {}}
-        
+
         else:
             logger.info(f'Skip download. File already exists {date} {final_pdf}')
-        
+
         results = self.read_pdf(pdf_path=final_pdf)
         return results
-        
+
     def download_pdf(self, date, path):
         """ descargar el PDF "actual" (la pagina guarda en sesion o algo similar el dia elegido) """
 
@@ -132,7 +130,7 @@ class NewDomains:
         response = self.session.post(f'{self.base_domain}/pdf/download_section', data={'nombreSeccion': 'cuarta'})
         try:
             data = response.json()
-        except:
+        except Exception:
             logger.error(f'INVALID JSON for {date} {path}')
             return None
         b64 = data['pdfBase64']
@@ -155,9 +153,7 @@ class NewDomains:
         file_name = pdf_path.split('/')[-1]
         last_error_code = file_name
         c = 0
-        last_df = None
-        last_any_df = None
-        
+
         for dom in df:
             logger.debug(f'\n************\nDF\t{dom.index}| {dom.columns} | {dom.values}\n**************')
             c += 1
@@ -180,17 +176,12 @@ class NewDomains:
                                 last_zona = zona
                                 valid_zone = True
                             else:
-                                ix = '' if last_df is None else last_df.index
-                                cl = '' if last_df is None else last_df.columns
-                                ix2 = '' if last_any_df is None else last_df.index
-                                cl2 = '' if last_any_df is None else last_df.columns
-                                v2 = '[]' if last_any_df is None else last_df.values
                                 logger.error(f'NO CHNGED ZONE "{last_dominio} > {url}" AND "{last_zona} != {zona}"')
                                 # logger.error(f'Changed ZONE expected! \n\t{ix}\n\t{cl}\n\t{ix2}\n\t{cl2}\n\t{v2}\n\t{dom.index}\n\t{dom.columns}')
                                 # skip all not-sure domains
                                 valid_zone = False
                                 last_error_code = f'error-{c}-{zona}-{file_name}'
-                        
+
                         if valid_zone:
                             if zona not in results['zonas']:
                                 results['zonas'][zona] = []
@@ -201,35 +192,37 @@ class NewDomains:
                                 results['errors'][last_error_code] = []
                             results['errors'][last_error_code].append(url)
                             logger.info(f'BAD DOMAIN {url} \n\t"{last_zona} != {zona}"\n\t"{last_dominio} > {url}"')
-                        
+
                         last_dominio = url
                     else:
                         logger.error(f'Bad line! \n\t{zona}\n\t{dom.index}\n\t{dom.columns}\n\t{dom.values}')
-                        
+
             skip = ['Unnamed', 'Boletín Oficial', 'NOMBRE DEL DOMINIO', 'Transferencias', 'Altas']
             ok = True
             for s in skip:
                 if s in dom.columns[0]:
                     ok = False
                     logger.info(f'SKIP ZONE {dom.columns[0]}')  # \n\t{dom.index}\n\t{dom.columns}\n\t{dom.values}')
-            
-            last_any_df = dom
 
             if ok:
                 new_zone = dom.columns[0]
-                if new_zone == 'com.a': new_zone = 'com.ar' # (?)
-                if new_zone == 'net.a': new_zone = 'net.ar' # (?)
-                if new_zone == 'org.a': new_zone = 'org.ar' # (?)
-                if new_zone == 'gob.a': new_zone = 'gob.ar' # (?)
-                if new_zone == 'tur.a': new_zone = 'gob.ar' # (?)
-                if new_zone == 'a': new_zone = 'ar' # (?)
-                
+                if new_zone == 'com.a':
+                    new_zone = 'com.ar'
+                if new_zone == 'net.a':
+                    new_zone = 'net.ar'
+                if new_zone == 'org.a':
+                    new_zone = 'org.ar'
+                if new_zone == 'gob.a':
+                    new_zone = 'gob.ar'
+                if new_zone == 'tur.a':
+                    new_zone = 'gob.ar'
+                if new_zone == 'a':
+                    new_zone = 'ar'
+
                 if new_zone not in valid_zones:
                     logger.error(f'BAD ZONE {new_zone}')
                 else:
                     zona = new_zone
                     logger.info(f'Zona FOUND: {zona}')  # ' at {dom.columns}\n\t{dom.index}')
-
-                last_df = dom
 
         return results

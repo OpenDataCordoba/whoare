@@ -4,7 +4,6 @@ import logging
 import requests
 import socket
 import subprocess
-import sys
 
 from whoare import __version__
 from whoare.base import Domain, subclasses, Registrant, DNS
@@ -27,60 +26,58 @@ class WhoAre:
             command = ['whois', f'-h {host}', domain]
         else:
             command = ['whois', domain]
-        
+
         if torify:
             command = ['torify'] + command
 
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         r = p.communicate()[0]
         raw = r.decode()
-        
+
         if p.returncode != 0:
-            error = f'WhoIs error {p.returncode} {raw}'
+            error = f'WhoIs command error {p.returncode} {raw}'
             logger.error(error)
             raise WhoIsCommandError(error)
-        
+
         self.raw_data = raw
         return raw
-    
-    def get_raw_from_43(self, domain, host='whois.nic.ar'):
-        
 
-        #socket connection
-        s = socket.socket(socket.AF_INET , socket.SOCK_STREAM)
-        s.connect((host , 43))
+    def get_raw_from_43(self, domain, host='whois.nic.ar'):
+
+        # socket connection
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((host, 43))
 
         query = f"{domain}\r\n".encode('utf-8')
         s.send(query)
-    
-        #receive reply
+
+        # receive reply
         msg = b''
         while len(msg) < 10000:
             chunk = s.recv(100)
             if(chunk == b''):
                 break
             msg = msg + chunk
-        
+
         return msg.decode('utf-8')
 
-
     def load(self, domain, host=None, mock_from_txt_file=None, torify=False, method='normal'):
-        """ load domain data. 
+        """ load domain data.
                 domain is DOMAIN.ZONE (never use subdomain like www or others)
-                host could be "whois.nic.ar" of argentina (optional) 
+                host could be "whois.nic.ar" of argentina (optional)
                 method is "normal" | "43" (43: connect direct to port 43 using the "host")
-            Return a dict with parsed data and fill class properties 
+            Return a dict with parsed data and fill class properties
                 mock_from_txt_file could be used to a path with exact whois results """
-        
+
         logger.info(f'Load {domain} {host}')
-        
+
         domain_name, zone = self.detect_zone(domain)
         zone_class = self.detect_subclass(zone)
         self.child = zone_class()
         self.domain = Domain(domain_name, zone)
 
         logger.info(f'Zone Class {zone_class} {domain_name} {zone}')
-        
+
         domain = f'{domain_name}.{zone}'
 
         if mock_from_txt_file is not None:
@@ -94,7 +91,7 @@ class WhoAre:
                 raw = self.get_raw_from_43(domain, host)
             else:
                 raw = self.get_raw(domain, host, torify)
-            
+
         return self.load_from_raw(raw)
 
     def load_from_raw(self, raw):
@@ -108,10 +105,10 @@ class WhoAre:
         self.domain.is_free = False
         # parse raw data
         self.child.parse(raw, self)
-        
+
     def detect_zone(self, domain):
         logger.info(f'Detect zone {domain}')
-        
+
         domain = domain.lower().strip()
 
         parts = domain.split('.')
@@ -124,11 +121,11 @@ class WhoAre:
         zone = '.'.join(parts[1:])
 
         return domain, zone
-    
+
     def detect_subclass(self, zone):
-        
+
         logger.info(f'Detecting subclass for {zone} at {subclasses}')
-        
+
         for cls in subclasses:
             logger.info(f'Searching zones for {cls} {cls.zones()}')
             if zone in cls.zones():
@@ -141,12 +138,12 @@ class WhoAre:
     def as_dict(self):
         """ build a nice dict """
         res = {
-                "domain": {
-                    "base_name": self.domain.base_name,
-                    "zone": self.domain.zone,
-                    "is_free": self.domain.is_free
-                    }
-                }
+            "domain": {
+                "base_name": self.domain.base_name,
+                "zone": self.domain.zone,
+                "is_free": self.domain.is_free
+            }
+        }
         if not self.domain.is_free:
             res["domain"]["registered"] = self.domain.registered.strftime('%Y-%m-%d %H:%M:%S.%f %z')
             res["domain"]["changed"] = self.domain.changed.strftime('%Y-%m-%d %H:%M:%S.%f %z')
@@ -156,10 +153,10 @@ class WhoAre:
                 "legal_uid": self.registrant.legal_uid,
                 "created": self.registrant.created.strftime('%Y-%m-%d %H:%M:%S.%f %z'),
                 "changed": self.registrant.changed.strftime('%Y-%m-%d %H:%M:%S.%f %z')
-                }
+            }
 
             res["dnss"] = [dns.name for dns in self.dnss]
-            
+
         logger.info(f'as dict {res}')
         return res
 
@@ -172,11 +169,11 @@ class WhoAre:
         self.domain.is_free = data['domain']['is_free']
         if self.domain.is_free:
             return
-        
+
         self.domain.registered = datetime.strptime(data["domain"]["registered"], '%Y-%m-%d %H:%M:%S.%f %z')
         self.domain.changed = datetime.strptime(data["domain"]["changed"], '%Y-%m-%d %H:%M:%S.%f %z')
-        self.domain.expire = datetime.strptime(data["domain"]["expire"] , '%Y-%m-%d %H:%M:%S.%f %z')
-        
+        self.domain.expire = datetime.strptime(data["domain"]["expire"], '%Y-%m-%d %H:%M:%S.%f %z')
+
         self.registrant = Registrant(name=data['registrant']['name'], legal_uid=data['registrant']['legal_uid'])
         self.registrant.created = datetime.strptime(data['registrant']['created'], '%Y-%m-%d %H:%M:%S.%f %z')
         self.registrant.changed = datetime.strptime(data['registrant']['changed'], '%Y-%m-%d %H:%M:%S.%f %z')
@@ -186,7 +183,7 @@ class WhoAre:
 
     def __eq__(self, wa2):
         diffs = []
-        if self.domain.base_name != wa2.domain.base_name: 
+        if self.domain.base_name != wa2.domain.base_name:
             diffs.append(f'domain.base_name {self.domain.base_name} != {wa2.domain.base_name}')
         if self.domain.zone != wa2.domain.zone:
             diffs.append(f'domain.zone {self.domain.zone} != {wa2.domain.zone}')
@@ -198,7 +195,7 @@ class WhoAre:
             diffs.append(f'domain.changed {self.domain.changed} != {wa2.domain.changed}')
         if self.domain.expire != wa2.domain.expire:
             diffs.append(f'domain.expire {self.domain.expire} != {wa2.domain.expire}')
-        
+
         if (self.registrant is None) != (wa2.registrant is None):
             diffs.append(f'registrant {self.registrant} != {wa2.registrant}')
         if self.registrant is not None and wa2.registrant is not None:
@@ -210,8 +207,8 @@ class WhoAre:
                 diffs.append(f'registrant.created {self.registrant.created} != {wa2.registrant.created}')
             if self.registrant.changed != wa2.registrant.changed:
                 diffs.append(f'registrant.changed {self.registrant.changed} != {wa2.registrant.changed}')
-        
-        if len(self.dnss) != len(wa2.dnss): 
+
+        if len(self.dnss) != len(wa2.dnss):
             diffs.append('Len DNSs')
         else:
             c = 0
@@ -229,7 +226,7 @@ class WhoAre:
             "domain_base_name": self.domain.base_name,
             "domain_zone": self.domain.zone,
             "domain_is_free": self.domain.is_free
-            }
+        }
 
         if not self.domain.is_free:
             res["domain_registered"] = self.domain.registered.strftime('%Y-%m-%d %H:%M:%S.%f %z')
@@ -244,7 +241,7 @@ class WhoAre:
             for dns in self.dnss:
                 res[f"dns{c}"] = dns.name
                 c += 1
-            
+
         logger.info(f'as plain dict {res}')
         return res
 
@@ -257,11 +254,11 @@ class WhoAre:
         self.domain.is_free = data['domain_is_free']
         if self.domain.is_free:
             return
-        
+
         self.domain.registered = datetime.strptime(data["domain_registered"], '%Y-%m-%d %H:%M:%S.%f %z')
         self.domain.changed = datetime.strptime(data["domain_changed"], '%Y-%m-%d %H:%M:%S.%f %z')
-        self.domain.expire = datetime.strptime(data["domain_expire"] , '%Y-%m-%d %H:%M:%S.%f %z')
-        
+        self.domain.expire = datetime.strptime(data["domain_expire"], '%Y-%m-%d %H:%M:%S.%f %z')
+
         self.registrant = Registrant(name=data['registrant_name'], legal_uid=data['registrant_legal_uid'])
         self.registrant.created = datetime.strptime(data['registrant_created'], '%Y-%m-%d %H:%M:%S.%f %z')
         self.registrant.changed = datetime.strptime(data['registrant_changed'], '%Y-%m-%d %H:%M:%S.%f %z')
@@ -271,7 +268,7 @@ class WhoAre:
                 self.dnss.append(DNS(name=data[f"dns{c}"]))
             else:
                 break
-    
+
     def push(self, token, post_url='https://nic.opendatacordoba.org/api/v1/dominios/dominio/update_from_whoare/'):
         """ post results to server """
         headers = {'Authorization': f'Token {token}'}

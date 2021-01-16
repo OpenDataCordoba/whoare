@@ -4,9 +4,7 @@ import logging
 import os
 import re
 import requests
-from time import sleep
 
-from whoare.zone_parsers.ar.who import WhoAr
 logger = logging.getLogger(__name__)
 
 
@@ -19,12 +17,12 @@ class NewDomains:
         self.ua = ua
         self.data_path = 'whoare/zone_parsers/ar/data'
 
-    def get_from_date_range(self, 
+    def get_from_date_range(self,
                             from_date=date.today() - timedelta(days=3),
                             to_date=date.today(),
                             push_url=None,
                             api_key=None):
-        """ download and process last ~year 
+        """ download and process last ~year
             If push_url and api_key exists we send push domains"""
 
         dia = from_date
@@ -34,7 +32,7 @@ class NewDomains:
         errors = 0
         while dia < to_date:
             dia += timedelta(days=1)
-            
+
             logger.info(f'Downloading {dia}')
             try:
                 results = self.get_from_date(dated=dia)
@@ -43,7 +41,7 @@ class NewDomains:
                 raise
 
             logger.info(f"===============\n{dia} {c} {errors}")
-        
+
             # grabar cada lista de errores en un archivo
             for code, lista in results['errors'].items():
                 f = open(f'{code}.txt', 'w')
@@ -79,14 +77,14 @@ class NewDomains:
         jresponse = response.json()
         logger.info(f' - Response [{response.status_code}]: {jresponse}')
         return response
-        
+
     def date_to_csvid(self, dated):
         """ los CSVs estan enumerados. Cada fecha es un numero
-            1022 = 2020-12-15 
+            1022 = 2020-12-15
 
-            del 303 pasa al 316 (?) 
-            del 203 pasa al 312 y despues sigue con 204 (?) 
-            
+            del 303 pasa al 316 (?)
+            del 203 pasa al 312 y despues sigue con 204 (?)
+
             NO SIRVE """
 
         # base = date(2020, 12, 25)
@@ -100,7 +98,7 @@ class NewDomains:
         rgx = re.search(r'/rd_list/download/(?P<csvid>[0-9]+)/csv/', response.text)
         if rgx is not None:
             return rgx.group('csvid')
-        
+
         logger.error(f'CSVID not found for {dated}')
         return None
 
@@ -112,17 +110,17 @@ class NewDomains:
         final_csv = os.path.join(self.data_path, f'{dated.strftime("%Y-%m-%d")}-blockchain.csv')
 
         if not os.path.isfile(final_csv):
-                
+
             ret = self.download_csv(dated=dated, path=final_csv)
             if ret is None:
                 return {'zonas': {}, 'errors': {}}
-        
+
         else:
             logger.info(f'Skip download. File already exists {dated} {final_csv}')
-        
+
         results = self.read_csv(csv_path=final_csv)
         return results
-        
+
     def download_csv(self, dated, path):
         """ descargar el PDF "actual" (la pagina guarda en sesion o algo similar el dia elegido) """
 
@@ -139,14 +137,14 @@ class NewDomains:
         url = f'{self.base_domain}/{csvid}/csv'
         try:
             response = requests.get(url, headers=headers)
-        except:
+        except Exception:
             logger.error('Error GET from blockchain CSV')
             return None
 
         if response.status_code >= 400 or response.content is None or response.text == '':
             logger.error(f'Error getting {url} from blockchain CSV {response.status_code}')
             return None
-    
+
         f = open(path, 'wb')
         f.write(response.content)
         f.close()
@@ -160,7 +158,7 @@ class NewDomains:
 
         if not os.path.isfile(csv_path):
             return results
-                
+
         f = open(csv_path)
         reader = csv.DictReader(f)
         # tipo	dominio	zona	id_dominio	titular	numero_doc	tipo_doc	fecha_registro
@@ -172,7 +170,7 @@ class NewDomains:
             dominio = row['dominio']  # no incluye la zona
             if zona not in results['zonas']:
                 results['zonas'][zona] = []
-            
+
             # revisar dominios con catacteres espciales
             idna_dominio = dominio.encode().decode('idna')
             if dominio != idna_dominio:
@@ -182,5 +180,5 @@ class NewDomains:
             url = f'{dominio}.{zona}'
             results['zonas'][zona].append(url)
             logger.info(f'DOMAIN FOUND {url}')
-        
+
         return results
