@@ -14,7 +14,7 @@ class WhoAr:
 
     @classmethod
     def zones(cls):
-        return ['ar', 'com.ar', 'gob.ar', 'gov.ar', 'int.ar', 'mil.ar', 'org.ar', 'tur.ar', 'net.ar', 'musica.ar', 'edu.ar']
+        return ['ar', 'com.ar', 'gob.ar', 'gov.ar', 'int.ar', 'mil.ar', 'org.ar', 'tur.ar', 'net.ar', 'musica.ar', 'edu.ar', 'coop.ar']
 
     def is_free(self, raw):
         """ determine if domain is free """
