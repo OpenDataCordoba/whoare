@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.2.2] 2021-12-18
+
+`whoare-serve` allows re-running the same domains after 100 iterations.
 
 ## [0.1.54] 2021-01-07
 

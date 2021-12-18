@@ -97,6 +97,9 @@ class WhoAreShare:
             logger.error(f'Duplicated domain {domain}. Skipping')
             return
         self.processed.append(domain)
+        # preserve only last N elements
+        if len(self.processed) > 100:
+            self.processed.pop(0)
 
         wa = WhoAre()
         try:
