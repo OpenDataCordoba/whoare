@@ -134,6 +134,11 @@ class WhoAreShare:
 
         if response.status_code != 200:
             logger.error(f'Error GET status {response.status_code}: {response.text}')
+            # Sample
+            # Error GET status 429: {"detail":"Request was throttled. Expected available in 8 seconds."}
+            # Error GET status 429: {"detail":"Request was throttled. Expected available in 11 seconds."}
+            # wait some seconds if 429
+            sleep(30)
             return None
         try:
             jresponse = response.json()
