@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.3] 2025-10-23
+
+Wait on 429 responses.
+
 ## [0.2.2] 2021-12-18
 
 `whoare-serve` allows re-running the same domains after 100 iterations.
