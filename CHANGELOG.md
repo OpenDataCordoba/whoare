@@ -1,9 +1,13 @@
 # Changelog
 
+## [0.2.4] 2025-10-23
+
+Add missing .ar zones
+
 ## [0.2.3] 2025-10-23
 
 Wait on 429 responses.
-Add missing .ar zones
+
 
 ## [0.2.2] 2021-12-18
 
