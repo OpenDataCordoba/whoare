@@ -6,7 +6,7 @@ def read_csv(dated):
     nd = NewDomains()
     nd.data_path = 'tests/ar/samples'
     results = nd.get_from_date(dated)
-    
+
     urls = []
     for zona, lista in results['zonas'].items():
         for dom in lista:
@@ -16,7 +16,7 @@ def read_csv(dated):
 
 def test_new_domains_2020_12_15():
     urls = read_csv(date(2020, 12, 15))
-    
+
     assert 'd2creativos.com.ar' in urls
     assert 'danielojeda.com.ar' in urls
     assert 'deseame.ar' in urls
@@ -28,7 +28,7 @@ def test_new_domains_2020_12_15():
 
 def test_new_domains_2020_12_20():
     urls = read_csv(date(2020, 12, 20))
-    
+
     assert 'xaragon.com.ar' in urls
     # # xn--expodiseo-s6a.com.ar
     assert 'expodiseño.com.ar' in urls
@@ -38,7 +38,7 @@ def test_new_domains_2020_12_20():
 
 def test_new_domains_2018_10_08():
     urls = read_csv(date(2018, 10, 8))
-    
+
     # TODO si empieza con cero el CSV viene malo
     # assert '341.com.ar' in urls
     assert 'abogadosdecordoba.net.ar' in urls
@@ -66,7 +66,7 @@ def test_new_domains_2020_11_26():
 
 def test_new_domains_2019_01_15():
     urls = read_csv(date(2019, 1, 15))
-    
+
     assert 'wtracker.com.ar' in urls
     # xn--tartamudezenaccin-vyb	com.ar
     assert 'tartamudezenacción.com.ar' in urls
