@@ -46,7 +46,7 @@ class WhoAreNews:
 
 def main():
 
-    push_url = 'https://nic.opendatacordoba.org/api/v1/dominios/predominio/'
+    push_url = 'https://whoare.io/api/v1/dominios/predominio/'
 
     parser = argparse.ArgumentParser(prog='whoare-news')
     parser.add_argument('--push_url', nargs='?', help='URL to post results to', type=str, default=push_url)

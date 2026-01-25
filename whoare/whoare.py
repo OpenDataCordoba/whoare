@@ -271,7 +271,7 @@ class WhoAre:
             else:
                 break
 
-    def push(self, token, post_url='https://nic.opendatacordoba.org/api/v1/dominios/dominio/update_from_whoare/'):
+    def push(self, token, post_url='https://whoare.io/api/v1/dominios/dominio/update_from_whoare/'):
         """ post results to server """
         headers = {'Authorization': f'Token {token}'}
         data = self.as_dict()

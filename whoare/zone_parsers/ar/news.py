@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class NewDomains:
     """ Lee el nuevo formato de PDF implementado por el Boletìn Oficial desde el
-        28/8/2019: https://nic.opendatacordoba.org/static/28-08-2019.pdf
+        28/8/2019: https://whoare.io/static/28-08-2019.pdf
     """
     def __init__(self, ua="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36"):
         self.base_domain = 'https://www.boletinoficial.gob.ar'
