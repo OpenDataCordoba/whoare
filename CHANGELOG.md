@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.5] 2026-01-25
+
+Zone fixes and update domain to whoare.io
+
 ## [0.2.4] 2025-10-23
 
 Add missing .ar zones
