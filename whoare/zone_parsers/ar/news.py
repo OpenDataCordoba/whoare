@@ -215,7 +215,7 @@ class NewDomains:
                 if new_zone == 'gob.a':
                     new_zone = 'gob.ar'
                 if new_zone == 'tur.a':
-                    new_zone = 'gob.ar'
+                    new_zone = 'tur.ar'
                 if new_zone == 'a':
                     new_zone = 'ar'
 
