@@ -59,7 +59,9 @@ class WhoAre:
                 break
             msg = msg + chunk
 
-        return msg.decode('utf-8')
+        raw = msg.decode('utf-8')
+        self.raw_data = raw
+        return raw
 
     def load(self, domain, host=None, mock_from_txt_file=None, torify=False, method='normal'):
         """ load domain data.
