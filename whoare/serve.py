@@ -231,7 +231,7 @@ class WhoAreShare:
 
         if pct > 90:
             self.pause_between_calls = 45
-        if pct > 80:
+        elif pct > 80:
             self.pause_between_calls = 35
         elif pct > 70:
             self.pause_between_calls = 25
