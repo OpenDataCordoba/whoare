@@ -2,6 +2,7 @@
 Iterate over priority domains and send data to server
 """
 import argparse
+from collections import deque
 from datetime import datetime
 import logging
 from time import sleep
@@ -14,13 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 class WhoAreShare:
-    def __init__(self, get_domains_url, post_url, token, torify=True, pause_between_calls=41, from_path=None):
+    def __init__(self, get_domains_url, post_url, token, torify=True, pause_between_calls=41, from_path=None, dynamic_pause=False):
         self.torify = torify  # use local IP and also torify
         self.post_url = post_url  # destination URL to share data (will be processed outside)
         self.token = token
         self.get_domains_url = get_domains_url  # URL to get domains from
         self.pause_between_calls = pause_between_calls
         self.from_path = from_path
+        self.dynamic_pause = dynamic_pause
 
         self.total_analizados = 0
         self.sin_cambios = 0
@@ -29,6 +31,9 @@ class WhoAreShare:
         self.renovados = 0
         self.otros_cambios = 0
         self.errores = 0
+
+        # Track last 20 results for dynamic pause
+        self.last_results = deque(maxlen=20)
 
         self.processed = []  # skip duplicates
 
@@ -181,9 +186,12 @@ class WhoAreShare:
         if cambios == []:
             if response.get('created', False):
                 self.nuevos += 1
+                self.last_results.append(0)
             else:
                 self.sin_cambios += 1
+                self.last_results.append(1)
         elif 'estado' in [c['campo'] for c in cambios]:
+            self.last_results.append(0)
             for cambio in cambios:
                 if cambio['campo'] == 'estado':
                     if cambio['anterior'] == 'disponible':
@@ -192,10 +200,39 @@ class WhoAreShare:
                         self.caidos += 1
         elif 'dominio_expire' in [c['campo'] for c in cambios]:
             self.renovados += 1
+            self.last_results.append(0)
         else:
             self.otros_cambios += 1
+            self.last_results.append(0)
 
-        logger.info(f'[{self.total_analizados}]{self.errores} REN{self.renovados} DOWN{self.caidos} NOCH{self.sin_cambios} NEW{self.nuevos} OTR{self.otros_cambios}')
+        self.update_dynamic_pause()
+        no_chg_prc_all = round(self.sin_cambios / self.total_analizados, 2) * 100 if self.total_analizados > 0 else 0
+        last_20_chg_prc = round(sum(self.last_results) / len(self.last_results), 2) * 100 if len(self.last_results) > 0 else 0
+        logger.info(
+            f'[{self.total_analizados}]{self.errores} RENOV {self.renovados} CAIDOS {self.caidos} '
+            f'NOCH{self.sin_cambios} ({no_chg_prc_all}% - {last_20_chg_prc}%) NEW{self.nuevos} OTR{self.otros_cambios} '
+            f'PAUSE {self.pause_between_calls}'
+        )
+
+    def update_dynamic_pause(self):
+        """ adjust pause based on % of sin_cambios in last 20 results """
+        if not self.dynamic_pause:
+            return
+        if len(self.last_results) == 0:
+            return
+
+        pct = sum(self.last_results) / len(self.last_results) * 100
+
+        if pct > 90:
+            self.pause_between_calls = 45
+        elif pct > 70:
+            self.pause_between_calls = 30
+        elif pct > 50:
+            self.pause_between_calls = 22
+        elif pct > 30:
+            self.pause_between_calls = 16
+        else:
+            self.pause_between_calls = 11
 
 
 def main():
@@ -211,6 +248,7 @@ def main():
     parser.add_argument('--token', nargs='?', help='Token to use as Header Autorization', type=str, required=True)
     parser.add_argument('--torify', nargs='?', type=bool, default=False, help='Use torify for WhoIs command')
     parser.add_argument('--pause', nargs='?', help='Pause between calls', default=41, type=int)
+    parser.add_argument('--dynamic_pause', action='store_true', help='Enable dynamic pause based on recent changes', default=False)
     parser.add_argument('--from_path', nargs='?', help='If not used we will get priorities from API. This is usted for new-domain lists', type=str)
     parser.add_argument('--one_domain', nargs='?', help='Just update one domain', type=str)
     parser.add_argument('--log_level', nargs='?', default='INFO', type=str)
@@ -236,7 +274,8 @@ def main():
         token=args.token,
         torify=args.torify,
         pause_between_calls=args.pause,
-        from_path=args.from_path
+        from_path=args.from_path,
+        dynamic_pause=args.dynamic_pause
     )
 
     if args.one_domain is not None:
