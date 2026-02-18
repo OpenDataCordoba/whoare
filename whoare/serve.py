@@ -206,11 +206,17 @@ class WhoAreShare:
             self.last_results.append(0)
 
         self.update_dynamic_pause()
-        no_chg_prc_all = round(self.sin_cambios / self.total_analizados, 2) * 100 if self.total_analizados > 0 else 0
-        last_20_chg_prc = round(sum(self.last_results) / len(self.last_results), 2) * 100 if len(self.last_results) > 0 else 0
+        no_chg_prc_all = round(
+            self.sin_cambios / self.total_analizados * 100, 2
+        ) if self.total_analizados > 0 else 0
+        last_20_chg_prc = round(
+            sum(self.last_results) / len(self.last_results) * 100, 2
+        ) if len(self.last_results) > 0 else 0
         logger.info(
-            f'[{self.total_analizados}]{self.errores} RENOV {self.renovados} CAIDOS {self.caidos} '
-            f'NOCH{self.sin_cambios} ({no_chg_prc_all}% - {last_20_chg_prc}%) NEW{self.nuevos} OTR{self.otros_cambios} '
+            f'[{self.total_analizados}]{self.errores} RENOV {self.renovados} '
+            f'CAIDOS {self.caidos} '
+            f'NOCH {self.sin_cambios} ({no_chg_prc_all}% - {last_20_chg_prc}%) '
+            f'NEW {self.nuevos} OTR {self.otros_cambios} '
             f'PAUSE {self.pause_between_calls}'
         )
 
@@ -225,14 +231,20 @@ class WhoAreShare:
 
         if pct > 90:
             self.pause_between_calls = 45
+        if pct > 80:
+            self.pause_between_calls = 35
         elif pct > 70:
-            self.pause_between_calls = 30
+            self.pause_between_calls = 25
+        elif pct > 60:
+            self.pause_between_calls = 20
         elif pct > 50:
-            self.pause_between_calls = 22
+            self.pause_between_calls = 19
+        elif pct > 40:
+            self.pause_between_calls = 17
         elif pct > 30:
-            self.pause_between_calls = 16
+            self.pause_between_calls = 13
         else:
-            self.pause_between_calls = 11
+            self.pause_between_calls = 9
 
 
 def main():
