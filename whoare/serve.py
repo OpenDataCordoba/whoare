@@ -230,21 +230,21 @@ class WhoAreShare:
         pct = sum(self.last_results) / len(self.last_results) * 100
 
         if pct > 90:
-            self.pause_between_calls = 45
+            self.pause_between_calls = 53
         elif pct > 80:
-            self.pause_between_calls = 35
+            self.pause_between_calls = 47
         elif pct > 70:
-            self.pause_between_calls = 25
+            self.pause_between_calls = 35
         elif pct > 60:
-            self.pause_between_calls = 20
+            self.pause_between_calls = 27
         elif pct > 50:
-            self.pause_between_calls = 19
-        elif pct > 40:
             self.pause_between_calls = 17
-        elif pct > 30:
+        elif pct > 40:
             self.pause_between_calls = 13
-        else:
+        elif pct > 30:
             self.pause_between_calls = 9
+        else:
+            self.pause_between_calls = 5
 
 
 def main():
