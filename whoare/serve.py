@@ -13,9 +13,20 @@ from whoare.whoare import WhoAre
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_DYNAMIC_PAUSE_RULES = [
+    (90, 53),
+    (80, 47),
+    (70, 35),
+    (60, 27),
+    (50, 17),
+    (40, 13),
+    (30, 9),
+    (0, 5),
+]
+
 
 class WhoAreShare:
-    def __init__(self, get_domains_url, post_url, token, torify=True, pause_between_calls=41, from_path=None, dynamic_pause=False):
+    def __init__(self, get_domains_url, post_url, token, torify=True, pause_between_calls=41, from_path=None, dynamic_pause=False, dynamic_pause_rules=None):
         self.torify = torify  # use local IP and also torify
         self.post_url = post_url  # destination URL to share data (will be processed outside)
         self.token = token
@@ -23,6 +34,7 @@ class WhoAreShare:
         self.pause_between_calls = pause_between_calls
         self.from_path = from_path
         self.dynamic_pause = dynamic_pause
+        self.dynamic_pause_rules = dynamic_pause_rules if dynamic_pause_rules is not None else DEFAULT_DYNAMIC_PAUSE_RULES
 
         self.total_analizados = 0
         self.sin_cambios = 0
@@ -229,22 +241,12 @@ class WhoAreShare:
 
         pct = sum(self.last_results) / len(self.last_results) * 100
 
-        if pct > 90:
-            self.pause_between_calls = 53
-        elif pct > 80:
-            self.pause_between_calls = 47
-        elif pct > 70:
-            self.pause_between_calls = 35
-        elif pct > 60:
-            self.pause_between_calls = 27
-        elif pct > 50:
-            self.pause_between_calls = 17
-        elif pct > 40:
-            self.pause_between_calls = 13
-        elif pct > 30:
-            self.pause_between_calls = 9
-        else:
-            self.pause_between_calls = 5
+        for threshold, pause in self.dynamic_pause_rules:
+            if pct > threshold:
+                self.pause_between_calls = pause
+                return
+        # fallback: use the last rule's pause value
+        self.pause_between_calls = self.dynamic_pause_rules[-1][1]
 
 
 def main():
@@ -261,6 +263,11 @@ def main():
     parser.add_argument('--torify', nargs='?', type=bool, default=False, help='Use torify for WhoIs command')
     parser.add_argument('--pause', nargs='?', help='Pause between calls', default=41, type=int)
     parser.add_argument('--dynamic_pause', action='store_true', help='Enable dynamic pause based on recent changes', default=False)
+    parser.add_argument(
+        '--dynamic_pause_rules', nargs='?', type=str, default=None,
+        help='Comma-separated threshold:pause pairs for dynamic pause, e.g. "90:53,80:47,70:35,60:27,50:17,40:13,30:9,0:5". '
+             'Each pair means: if no-change%% > threshold, use that pause (seconds). Evaluated in order, first match wins.'
+    )
     parser.add_argument('--from_path', nargs='?', help='If not used we will get priorities from API. This is usted for new-domain lists', type=str)
     parser.add_argument('--one_domain', nargs='?', help='Just update one domain', type=str)
     parser.add_argument('--log_level', nargs='?', default='INFO', type=str)
@@ -280,6 +287,13 @@ def main():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
+    dynamic_pause_rules = None
+    if args.dynamic_pause_rules:
+        dynamic_pause_rules = []
+        for pair in args.dynamic_pause_rules.split(','):
+            threshold, pause = pair.strip().split(':')
+            dynamic_pause_rules.append((int(threshold), int(pause)))
+
     was = WhoAreShare(
         get_domains_url=args.get,
         post_url=args.post,
@@ -287,7 +301,8 @@ def main():
         torify=args.torify,
         pause_between_calls=args.pause,
         from_path=args.from_path,
-        dynamic_pause=args.dynamic_pause
+        dynamic_pause=args.dynamic_pause,
+        dynamic_pause_rules=dynamic_pause_rules
     )
 
     if args.one_domain is not None:
