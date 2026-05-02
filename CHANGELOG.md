@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.10] 2026-05-02
+
+Allow deleting errored domains
+
+...
+
 ## [0.2.5] 2026-01-25
 
 Zone fixes and update domain to whoare.io
