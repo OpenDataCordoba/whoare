@@ -274,9 +274,8 @@ def main():
 
     args = parser.parse_args()
 
-    if args.log_level == 'INFO':
-        log_level = logging.INFO
-    elif args.log_level == 'DEBUG':
+    log_level = logging.INFO
+    if args.log_level == 'DEBUG':
         log_level = logging.DEBUG
 
     logger.setLevel(log_level)
