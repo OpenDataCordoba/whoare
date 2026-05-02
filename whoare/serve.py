@@ -26,11 +26,12 @@ DEFAULT_DYNAMIC_PAUSE_RULES = [
 
 
 class WhoAreShare:
-    def __init__(self, get_domains_url, post_url, token, torify=True, pause_between_calls=41, from_path=None, dynamic_pause=False, dynamic_pause_rules=None):
+    def __init__(self, get_domains_url, post_url, token, torify=True, pause_between_calls=41, from_path=None, dynamic_pause=False, dynamic_pause_rules=None, delete_predomain_url=None):
         self.torify = torify  # use local IP and also torify
         self.post_url = post_url  # destination URL to share data (will be processed outside)
         self.token = token
         self.get_domains_url = get_domains_url  # URL to get domains from
+        self.delete_predomain_url = delete_predomain_url
         self.pause_between_calls = pause_between_calls
         self.from_path = from_path
         self.dynamic_pause = dynamic_pause
@@ -112,6 +113,7 @@ class WhoAreShare:
 
         if domain in self.processed:
             logger.error(f'Duplicated domain {domain}. Skipping')
+            self.delete_predomain(domain)
             return
         self.processed.append(domain)
         # preserve only last N elements
@@ -132,6 +134,7 @@ class WhoAreShare:
         except Exception as e:
             logger.error(f'Serve Whois ERROR {e}')
             self.errores += 1
+            self.delete_predomain(domain)
         else:
             self.post_one(wa)
 
@@ -176,6 +179,18 @@ class WhoAreShare:
 
         logger.info(f" - Got {domain} {dom.get('estado', '')} readed {dom.get('data_readed', '')} expire {dom.get('expire', '')}")
         return domain
+
+    def delete_predomain(self, domain):
+        """Tell the server to remove this domain from PreDominio table.
+        Called on error or duplicate so predomains don't get stuck."""
+        if not self.delete_predomain_url:
+            return
+        headers = {'Authorization': f'Token {self.token}'}
+        try:
+            response = requests.post(self.delete_predomain_url, data={'domain': domain}, headers=headers)
+            logger.info(f'Delete predomain {domain}: {response.status_code} {response.text}')
+        except Exception as e:
+            logger.error(f'Error deleting predomain {domain}: {e}')
 
     def post_one(self, wa):
         """ post results to server """
@@ -255,10 +270,12 @@ def main():
     base_domain = 'https://whoare.io'
     default_get = f'{base_domain}/api/v1/dominios/next-priority/'
     default_post = f'{base_domain}/api/v1/dominios/dominio/update_from_whoare/'
+    default_delete_predomain = f'{base_domain}/api/v1/dominios/predominio/delete_by_domain/'
 
     parser = argparse.ArgumentParser(prog='whoare-share')
     parser.add_argument('--get', nargs='?', help='URL to get domains from', type=str, default=default_get)
     parser.add_argument('--post', nargs='?', help='URL to post results to', type=str, default=default_post)
+    parser.add_argument('--delete_predomain', nargs='?', help='URL to delete predomains on error', type=str, default=default_delete_predomain)
     parser.add_argument('--token', nargs='?', help='Token to use as Header Autorization', type=str, required=True)
     parser.add_argument('--torify', nargs='?', type=bool, default=False, help='Use torify for WhoIs command')
     parser.add_argument('--pause', nargs='?', help='Pause between calls', default=41, type=int)
@@ -301,7 +318,8 @@ def main():
         pause_between_calls=args.pause,
         from_path=args.from_path,
         dynamic_pause=args.dynamic_pause,
-        dynamic_pause_rules=dynamic_pause_rules
+        dynamic_pause_rules=dynamic_pause_rules,
+        delete_predomain_url=args.delete_predomain
     )
 
     if args.one_domain is not None:
