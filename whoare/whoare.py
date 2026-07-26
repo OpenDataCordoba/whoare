@@ -31,7 +31,14 @@ class WhoAre:
             command = ['torify'] + command
 
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        r = p.communicate()[0]
+        try:
+            r = p.communicate(timeout=60)[0]
+        except subprocess.TimeoutExpired:
+            p.kill()
+            p.communicate()
+            error = f'WhoIs command timeout for {domain}'
+            logger.error(error)
+            raise WhoIsCommandError(error)
         raw = r.decode()
 
         if p.returncode != 0:
@@ -42,22 +49,28 @@ class WhoAre:
         self.raw_data = raw
         return raw
 
-    def get_raw_from_43(self, domain, host='whois.nic.ar'):
+    def get_raw_from_43(self, domain, host='whois.nic.ar', timeout=30):
 
         # socket connection
+        # sin timeout, connect/recv pueden bloquear para siempre si el
+        # servidor acepta la conexion pero no responde
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((host, 43))
+        s.settimeout(timeout)
+        try:
+            s.connect((host, 43))
 
-        query = f"{domain}\r\n".encode('utf-8')
-        s.send(query)
+            query = f"{domain}\r\n".encode('utf-8')
+            s.send(query)
 
-        # receive reply
-        msg = b''
-        while len(msg) < 10000:
-            chunk = s.recv(100)
-            if(chunk == b''):
-                break
-            msg = msg + chunk
+            # receive reply
+            msg = b''
+            while len(msg) < 10000:
+                chunk = s.recv(100)
+                if(chunk == b''):
+                    break
+                msg = msg + chunk
+        finally:
+            s.close()
 
         raw = msg.decode('utf-8')
         self.raw_data = raw
@@ -279,7 +292,7 @@ class WhoAre:
         logger.debug(f'POSTing {data}')
         str_data = json.dumps(data)
         final = {'domain': str_data}
-        response = requests.post(post_url, data=final, headers=headers)
+        response = requests.post(post_url, data=final, headers=headers, timeout=60)
         jresponse = response.json()
         logger.debug(f' - POST {jresponse}')
         return jresponse

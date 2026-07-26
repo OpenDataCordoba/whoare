@@ -147,7 +147,7 @@ class WhoAreShare:
         data = {'t': datetime.now().timestamp()}
 
         try:
-            response = requests.get(self.get_domains_url, data=data, headers=headers)
+            response = requests.get(self.get_domains_url, data=data, headers=headers, timeout=30)
         except Exception as e:
             logger.error(f'Error get_one rquest: {e}')
             return None
@@ -187,7 +187,7 @@ class WhoAreShare:
             return
         headers = {'Authorization': f'Token {self.token}'}
         try:
-            response = requests.post(self.delete_predomain_url, data={'domain': domain}, headers=headers)
+            response = requests.post(self.delete_predomain_url, data={'domain': domain}, headers=headers, timeout=30)
             logger.info(f'Delete predomain {domain}: {response.status_code} {response.text}')
         except Exception as e:
             logger.error(f'Error deleting predomain {domain}: {e}')
