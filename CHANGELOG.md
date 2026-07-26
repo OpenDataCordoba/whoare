@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.11] 2026-05-02
+
+Imlement timeout
+
 ## [0.2.10] 2026-05-02
 
 Allow deleting errored domains
