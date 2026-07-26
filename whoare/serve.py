@@ -26,7 +26,7 @@ DEFAULT_DYNAMIC_PAUSE_RULES = [
 
 
 class WhoAreShare:
-    def __init__(self, get_domains_url, post_url, token, torify=True, pause_between_calls=41, from_path=None, dynamic_pause=False, dynamic_pause_rules=None, delete_predomain_url=None):
+    def __init__(self, get_domains_url, post_url, token, torify=True, pause_between_calls=41, from_path=None, dynamic_pause=False, dynamic_pause_rules=None, delete_predomain_url=None, max_consecutive_errors=10):
         self.torify = torify  # use local IP and also torify
         self.post_url = post_url  # destination URL to share data (will be processed outside)
         self.token = token
@@ -36,6 +36,11 @@ class WhoAreShare:
         self.from_path = from_path
         self.dynamic_pause = dynamic_pause
         self.dynamic_pause_rules = dynamic_pause_rules if dynamic_pause_rules is not None else DEFAULT_DYNAMIC_PAUSE_RULES
+
+        # after this many consecutive errors we exit(1) so the process
+        # manager (supervisor) restarts us with a clean state. 0 disables.
+        self.max_consecutive_errors = max_consecutive_errors
+        self.consecutive_errors = 0
 
         self.total_analizados = 0
         self.sin_cambios = 0
@@ -49,6 +54,21 @@ class WhoAreShare:
         self.last_results = deque(maxlen=20)
 
         self.processed = []  # skip duplicates
+
+    def register_error(self, context):
+        """ count consecutive errors and die if there are too many.
+            A single error is normal (whois hiccups); many in a row
+            mean something is stuck and a fresh process is safer. """
+        self.consecutive_errors += 1
+        if self.max_consecutive_errors and self.consecutive_errors >= self.max_consecutive_errors:
+            logger.critical(
+                f'{self.consecutive_errors} consecutive errors (last: {context}). '
+                'Exiting, the process manager should restart us'
+            )
+            sys.exit(1)
+
+    def register_success(self):
+        self.consecutive_errors = 0
 
     def run(self):
         """ get domains and _whois_ them """
@@ -135,6 +155,7 @@ class WhoAreShare:
             logger.error(f'Serve Whois ERROR {e}')
             self.errores += 1
             self.delete_predomain(domain)
+            self.register_error(f'whois {domain}: {e}')
         else:
             self.post_one(wa)
 
@@ -150,6 +171,7 @@ class WhoAreShare:
             response = requests.get(self.get_domains_url, data=data, headers=headers, timeout=30)
         except Exception as e:
             logger.error(f'Error get_one rquest: {e}')
+            self.register_error(f'get_one: {e}')
             return None
 
         if response.status_code != 200:
@@ -158,12 +180,14 @@ class WhoAreShare:
             # Error GET status 429: {"detail":"Request was throttled. Expected available in 8 seconds."}
             # Error GET status 429: {"detail":"Request was throttled. Expected available in 11 seconds."}
             # wait some seconds if 429
+            self.register_error(f'get_one status {response.status_code}')
             sleep(30)
             return None
         try:
             jresponse = response.json()
         except Exception:
             logger.error(f'ERROR parsing {response.text}')
+            self.register_error('get_one: unparseable response')
             return None
 
         response = jresponse.get('results', [])
@@ -198,6 +222,7 @@ class WhoAreShare:
             jresponse = wa.push(token=self.token, post_url=self.post_url)
         except Exception as e:
             logger.error(f'Error post_one request: {e}')
+            self.register_error(f'post_one: {e}')
             return None
 
         self.analyze_changes(jresponse)
@@ -207,7 +232,11 @@ class WhoAreShare:
         if not response.get('ok', False):
             logger.error(f'Error in response: {response.get("error", "Unknown")}')
             self.errores += 1
+            self.register_error(f'server response: {response.get("error", "Unknown")}')
             return
+
+        # full cycle finished OK (get + whois + push accepted)
+        self.register_success()
 
         cambios = response.get('cambios', [])
         if cambios == []:
@@ -285,6 +314,11 @@ def main():
         help='Comma-separated threshold:pause pairs for dynamic pause, e.g. "90:53,80:47,70:35,60:27,50:17,40:13,30:9,0:5". '
              'Each pair means: if no-change%% > threshold, use that pause (seconds). Evaluated in order, first match wins.'
     )
+    parser.add_argument(
+        '--max_consecutive_errors', nargs='?', type=int, default=10,
+        help='Exit(1) after this many consecutive errors so a process manager '
+             '(supervisor/systemd) can restart with a clean state. 0 disables.'
+    )
     parser.add_argument('--from_path', nargs='?', help='If not used we will get priorities from API. This is usted for new-domain lists', type=str)
     parser.add_argument('--one_domain', nargs='?', help='Just update one domain', type=str)
     parser.add_argument('--log_level', nargs='?', default='INFO', type=str)
@@ -319,7 +353,8 @@ def main():
         from_path=args.from_path,
         dynamic_pause=args.dynamic_pause,
         dynamic_pause_rules=dynamic_pause_rules,
-        delete_predomain_url=args.delete_predomain
+        delete_predomain_url=args.delete_predomain,
+        max_consecutive_errors=args.max_consecutive_errors
     )
 
     if args.one_domain is not None:

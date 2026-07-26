@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.12] 2026-07-26
+
+`whoare-serve` exits with code 1 after N consecutive errors (default 10,
+`--max_consecutive_errors`, 0 disables) so a process manager like
+supervisor can restart it with a clean state.
+
 ## [0.2.11] 2026-05-02
 
 Imlement timeout
